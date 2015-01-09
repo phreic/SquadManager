@@ -374,6 +374,8 @@ namespace PRoConEvents
             public int[] AddPlayer(String SoldierName, int TeamID, int SquadID)
             {
                 int[] RequestLeader = new int[2];
+                bool SquadFound = false;
+                bool PlayerDelete = false;
 
                 if (String.IsNullOrEmpty(SoldierName))
                     return RequestLeader;
@@ -383,18 +385,20 @@ namespace PRoConEvents
                     if (squad.getMembers().Contains(SoldierName))
                     {
                         RequestLeader = squad.RemPlayer(SoldierName);
-
-                        /*if(squad.getMembers().Count == 0)
-                            SquadList.Remove(squad);*/
+                        PlayerDelete = true;
                     }
-
 
                     if (squad.getID(0) == TeamID && squad.getID(1) == SquadID)
                     {
                         squad.AddPlayer(SoldierName);
-                        return RequestLeader;
+                        if (PlayerDelete)
+                            return RequestLeader;
+                        SquadFound = true;
                     }
                 }
+
+                if (SquadFound)
+                    return RequestLeader;
 
                 Squad NewSquad = new Squad(SoldierName, TeamID, SquadID);
                 SquadList.Add(NewSquad);
@@ -820,7 +824,7 @@ namespace PRoConEvents
         }
         public string GetPluginVersion()
         {
-            return "0.9.7.5";
+            return "0.9.7.6";
         }
         public string GetPluginAuthor()
         {
@@ -988,7 +992,7 @@ The messages which are shown depending on the settings of your plug-in and will 
 <p>Feel free to write any suggestion how this plugin could be improved into the plugin thread.</p><br>  
 
 <h2><p>Changelog</p></h2>  
-<blockquote><h4>0.9.7.5 (09-Jan-2015)</h4><br>  
+<blockquote><h4>0.9.7.6 (09-Jan-2015)</h4><br>  
 <li>Private test release</li><br/>
 </blockquote>";
         }
