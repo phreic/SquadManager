@@ -824,7 +824,7 @@ namespace PRoConEvents
         }
         public string GetPluginVersion()
         {
-            return "0.9.7.6";
+            return "0.9.7.7";
         }
         public string GetPluginAuthor()
         {
@@ -992,7 +992,7 @@ The messages which are shown depending on the settings of your plug-in and will 
 <p>Feel free to write any suggestion how this plugin could be improved into the plugin thread.</p><br>  
 
 <h2><p>Changelog</p></h2>  
-<blockquote><h4>0.9.7.6 (09-Jan-2015)</h4><br>  
+<blockquote><h4>0.9.7.7 (09-Jan-2015)</h4><br>  
 <li>Private test release</li><br/>
 </blockquote>";
         }
@@ -2764,10 +2764,16 @@ The messages which are shown depending on the settings of your plug-in and will 
                 bool Permission = false;
                 if (UseLeaderList)
                     if (WhiteList.Contains(speaker) && !WhiteList.Contains(squad.GetSquadLeader()))
+                    {
+                        DebugWrite("^b" + speaker + "^n ask for lead of Squad ^b[" + squad.getID(0) + "][" + squad.getName() + "]^n. Player is in Squad List.", 3);
                         Permission = true;
+                    }
                 if (UseReservedList)
                     if (Permission == false && ReservedSlots.Contains(speaker) && !ReservedSlots.Contains(squad.GetSquadLeader()))
+                    {
+                        DebugWrite("^b" + speaker + "^n ask for lead of Squad ^b[" + squad.getID(0) + "][" + squad.getName() + "]^n. Player has a Reserved Slot.", 3);
                         Permission = true;
+                    }
 
                 if (Permission)
                 {
@@ -2845,6 +2851,13 @@ The messages which are shown depending on the settings of your plug-in and will 
                 Squad squad = squads.SearchSquad(speaker);
                 if (squad == null)
                     return true;
+
+                if (squad.GetSquadLeader() == speaker)
+                {
+                    ServerCommand("admin.say", "You're already Squad Leader.", "player", speaker);
+                    return true;
+                }
+
 
                 if (squad.getID(1) < 1)
                     return true;
