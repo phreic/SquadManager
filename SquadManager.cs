@@ -898,7 +898,7 @@ You can also choose whether the warnings should be shown as yell message or not.
 </blockquote> 
 
 <blockquote> 
-<p><b>4 - Auto Squad Leader</b><br> 
+<p><b>4 - Squad Command Lead</b><br> 
 Enable this option to give players with <b>Reserved Slot List</b> or VIPs (<b>Squad Leader List</b>) the possibility to take over the Squad Lead with <b>!lead</b> command in chat.<br>
 You can add VIPs to the <b>Squad Leader List</b>. The Squad Leader List has a higher priority than the Reserved Slot List<br>
 
@@ -910,7 +910,7 @@ If a Squad Leader is on the Squad Leader List, someone else from Reserved Slot o
 </blockquote> 
 
 <blockquote> 
-<p><b>5 - Vote Squad Leaders</b><br> 
+<p><b>5 - Squad Command Vote</b><br> 
 Squad members can apply for Squad Lead with <b>!newleader</b> command.<br>
 Everyone in the Squad will receive messages and can vote for the new Squad Leader with <b>!accept</b> command.<br>
 <b>Votes needed:</b> How many !accept votes are needed for a successful vote.<br> 
@@ -930,7 +930,7 @@ It can also prevent most of the kills via admin move command because the invitee
 <b>Squad Leaders only:</b> Only Squad Leaders can send invites to other players.<br> 
 <b>Allow Team Switches:</b> Players can invite other players even if they are in the enemy team.<br> 
 <b>Maximum invites per round:</b> The maximum number of invites a player can send during a round.<br> 
-<b>Send invite messages how often: </b> Determines how often a invite message should be shown when the invitee is death.<br> 
+<b>Send invite messages how often: </b> Determines how often an invite message should be shown when the invitee is death.<br> 
 </p>
 </blockquote> 
 
@@ -978,12 +978,12 @@ This means if you disable a feature or change a setting the chat message will be
 
 <blockquote> 
 <p><b>!join </b><br>   
-</p>Accept a invite.<br>  
+</p>Accept an invite.<br>  
 </blockquote> 
 
 <blockquote> 
 <p><b>!deny </b>  <br>  
-</p>Don't accept a invite. You can't get any more invites from the player who has invited you this round.<br>  
+</p>Don't accept an invite. You can't get any more invites from the player who has invited you this round.<br>  
 </blockquote> 
 
 
@@ -1034,15 +1034,15 @@ This means if you disable a feature or change a setting the chat message will be
             lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|How many warnings", NoOrdersWarnings.GetType(), NoOrdersWarnings));
             lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Yell warnings", YellWarnings.GetType(), YellWarnings));
 
-            lstReturn.Add(new CPluginVariable("4 - Auto Squad Leader|Enforce Squad Lead [!lead]", Enforce.GetType(), Enforce));
-            lstReturn.Add(new CPluginVariable("4 - Auto Squad Leader|Use Reserved Slot List", UseReservedList.GetType(), UseReservedList));
-            lstReturn.Add(new CPluginVariable("4 - Auto Squad Leader|Use Squad Leader List", UseLeaderList.GetType(), UseLeaderList));
-            lstReturn.Add(new CPluginVariable("4 - Auto Squad Leader|Squad Leaders List", typeof(string[]), WhiteList.ToArray()));
+            lstReturn.Add(new CPluginVariable("4 - Squad Command Lead|Enforce Squad Lead [!lead]", Enforce.GetType(), Enforce));
+            lstReturn.Add(new CPluginVariable("4 - Squad Command Lead|Use Reserved Slot List", UseReservedList.GetType(), UseReservedList));
+            lstReturn.Add(new CPluginVariable("4 - Squad Command Lead|Use Squad Leader List", UseLeaderList.GetType(), UseLeaderList));
+            lstReturn.Add(new CPluginVariable("4 - Squad Command Lead|Squad Leaders List", typeof(string[]), WhiteList.ToArray()));
 
-            lstReturn.Add(new CPluginVariable("5 - Vote Squad Leader|Allow Vote new Squad Leader [!newleader]", VoteDismiss.GetType(), VoteDismiss));
-            lstReturn.Add(new CPluginVariable("5 - Vote Squad Leader|Votes needed", VotesNeededDismiss.GetType(), VotesNeededDismiss));
-            lstReturn.Add(new CPluginVariable("5 - Vote Squad Leader|Vote duration (seconds)", VoteDuration.GetType(), VoteDuration));
-            lstReturn.Add(new CPluginVariable("5 - Vote Squad Leader|Yell vote announcement", YellVote.GetType(), YellVote));
+            lstReturn.Add(new CPluginVariable("5 - Squad Command Vote|Allow Vote new Squad Leader [!newleader]", VoteDismiss.GetType(), VoteDismiss));
+            lstReturn.Add(new CPluginVariable("5 - Squad Command Vote|Votes needed", VotesNeededDismiss.GetType(), VotesNeededDismiss));
+            lstReturn.Add(new CPluginVariable("5 - Squad Command Vote|Vote duration (seconds)", VoteDuration.GetType(), VoteDuration));
+            lstReturn.Add(new CPluginVariable("5 - Squad Command Vote|Yell vote announcement", YellVote.GetType(), YellVote));
 
             lstReturn.Add(new CPluginVariable("6 - Squad Command Invite|Allow invite players [!invite playername]", InviteCommand.GetType(), InviteCommand));
             lstReturn.Add(new CPluginVariable("6 - Squad Command Invite|Squad Leaders only", SquadLeadersOnly.GetType(), SquadLeadersOnly));
@@ -1841,8 +1841,8 @@ This means if you disable a feature or change a setting the chat message will be
 
                 if (Inviter.getInvitees().Contains(target.SoldierName))
                 {
-                    ServerCommand("admin.say", "You already sent a invite to " + target.SoldierName + " this round.", "player", speaker);
-                    DebugWrite("admin.say You already sent a invite to " + target.SoldierName + " this round. player" + speaker, 4);
+                    ServerCommand("admin.say", "You already sent an invite to " + target.SoldierName + " this round.", "player", speaker);
+                    DebugWrite("admin.say You already sent an invite to " + target.SoldierName + " this round. player" + speaker, 4);
                     return;
                 }
             }
