@@ -860,7 +860,7 @@ Supported Game Modes:</b> All but not tested with SQDM yet.</p><br>
 <p>Do you think this plug-in useful and you want to support future updates?</p>
 <form action=""https://www.paypal.com/cgi-bin/webscr"" method=""post"" target=""_blank"">
 <input type=""hidden"" name=""cmd"" value=""_s-xclick"">
-<input type=""hidden"" name=""hosted_button_id"" value=""EGZHHLTCTDE8J"">
+<input type=""hidden"" name=""hosted_button_id"" value=""H6MM23JN4SVHL"">
 <input type=""image"" src=""https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"" border=""0"" name=""submit"" alt=""PayPal - The safer, easier way to pay online!"">
 <img alt="""" border=""0"" src=""https://www.paypalobjects.com/de_DE/i/scr/pixel.gif"" width=""1"" height=""1"">
 </form>
