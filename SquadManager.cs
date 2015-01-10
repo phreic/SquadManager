@@ -824,7 +824,7 @@ namespace PRoConEvents
         }
         public string GetPluginVersion()
         {
-            return "0.9.7.7";
+            return "0.9.7.8";
         }
         public string GetPluginAuthor()
         {
@@ -924,9 +924,15 @@ Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK S
 </blockquote> 
 
 <blockquote> 
-<p><b>8 - Messages</b><br>  
-Writes message in chat how this plug-in can be used.<br>  
-The messages which are shown depending on the settings of your plug-in and will be updated automatically.<br> 
+<p><b>7 - Squad Command GiveLead</b><br>  
+If this option is enabled, Squad Leaders can give the leadership to someone else in Squad.<br>  
+Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK Squad Lead if you are currently Squad Leader.<br>  
+</p>
+</blockquote> 
+
+<blockquote> 
+<p><b>9 - Squad Unlock</b><br>  
+<b>Unlock all Squads</b> feature can be used to force all Squads to be not private.<br> 
 </p>
 </blockquote> 
 
@@ -992,7 +998,7 @@ The messages which are shown depending on the settings of your plug-in and will 
 <p>Feel free to write any suggestion how this plugin could be improved into the plugin thread.</p><br>  
 
 <h2><p>Changelog</p></h2>  
-<blockquote><h4>0.9.7.7 (09-Jan-2015)</h4><br>  
+<blockquote><h4>0.9.7.8 (10-Jan-2015)</h4><br>  
 <li>Plugin Approval release</li><br/>
 </blockquote>";
         }
@@ -1237,6 +1243,7 @@ The messages which are shown depending on the settings of your plug-in and will 
             RestoreOnRoundStart = new List<String>();
             ListSquadInviters = new List<SquadInviter>();
             NewPlayersQueue = new List<NewPlayer>();
+            JoinSwitchQueue.Clear();
             ConsoleWrite("Enabled!");
 
         }
@@ -1265,6 +1272,7 @@ The messages which are shown depending on the settings of your plug-in and will 
             Votes.Clear();
             squads.Clear();
             ReservedSlots.Clear();
+            JoinSwitchQueue.Clear();
             ConsoleWrite("Disabled!");
         }
 
