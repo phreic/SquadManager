@@ -993,10 +993,7 @@ This means if you disable a feature or change a setting the chat message will be
 </blockquote> 
 
 <h2><p>Suggestions and Support</p></h2>
-<p>Feel free to write any suggestion how this plugin could be improved into the plugin thread.</p><br>  
-<h2><p>Changelog</p></h2><br>  
-
-<li>Pre Release</li><br>
+<p>Feel free to write any suggestion how this plugin could be improved into the plugin thread.</p><br>    
 
 <h2><p>Known Issues</p></h2>
 <li>It takes a few seconds to restore Squad Leaders on Round start. This time is necessary to rebuild the internal Squads structure.</li><br>
@@ -1011,7 +1008,6 @@ This means if you disable a feature or change a setting the chat message will be
 <li>Merge Squads</li><br/>
 <li>Force ""Semi-Normal"" Squad Spawn on Classic Mode</li><br>
 <li>Enable/Disable ""Semi-Normal"" Squad Spawn depending on Team Balance</li><br>
-<li>Unlock all Squads</li><br>
 <li> ...</li><br>
 	
 <p>Feel free to write any suggestion how this plugin could be improved into the plugin thread.</p><br>  
