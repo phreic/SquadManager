@@ -941,13 +941,6 @@ Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK S
 </blockquote> 
 
 <blockquote> 
-<p><b>7 - Squad Command GiveLead</b><br>  
-If this option is enabled, Squad Leaders can give the leadership to someone else in Squad.<br>  
-Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK Squad Lead if you are currently Squad Leader.<br>  
-</p>
-</blockquote> 
-
-<blockquote> 
 <p><b>8 - Squad Unlock</b><br>  
 <b>Unlock all Squads</b> feature can be used to force all Squads to be not private.<br> 
 </p>
