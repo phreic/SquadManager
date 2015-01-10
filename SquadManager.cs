@@ -89,8 +89,7 @@ namespace PRoConEvents
       "Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel",
       "India", "Juliet", "Kilo", "Lima", "Mike", "November", "Oscar", "Papa",
       "Quebec", "Romeo", "Sierra", "Tango", "Uniform", "Victor", "Whiskey", "Xray",
-      "Yankee", "Zulu", "Haggard", "Sweetwater", "Preston", "Redford", "Faith", "Celeste"
-    };
+      "Yankee", "Zulu", "Haggard", "Sweetwater", "Preston", "Redford", "Faith", "Celeste"};
 
         // Settings
 
@@ -880,14 +879,18 @@ It was tested with MULTIBalancer's ""Keep Squads Together"" feature.
 
 <blockquote> 
 <p><b>2 - Dismiss Idle Squad Leaders</b><br> 
-With this option you can give someone else Squad Lead if the current Squad Leader is idling.<br>
+With this option the plugin gives anyone else Squad Lead if the current Squad Leader is idling.<br>
+The old Squad Leader stays in the Squad and a random other player from the Squad takes over Squad Lead.<br>
+At the moment the new Squad Leader will be chosen randomly. For future updates there will be an option to choose the new Leader based on stats or reputation. <br>
 You can choose the <b>Maximum Idle Time in seconds</b>. This value should be >= 30s since Squad Leaders idle times aren't updated faster than every 30s.<br>
 </p>
 </blockquote> 
 
 <blockquote> 
 <p><b>3 - Dismiss No Orders Squad Leaders</b><br> 
-With this option the plugin gives someone else Squad Lead if the current Squad Leader is giving no Squad Orders.<br>
+With this option the plugin gives anyone else Squad Lead if the current Squad Leader is giving no Squad Orders.<br>
+The old Squad Leader stays in the Squad and a random other player from the Squad takes over Squad Lead.<br>
+At the moment the new Squad Leader will be chosen randomly. For future updates there will be an option to choose the new Leader based on stats or reputation. <br>
 Please note: Only Squad Leader commands via Comme Rose can be counted as Orders.<br>
 <b>Only on Conquest</b> disables this feature on any other game Mode than Conquest.<br>
 <b>Maximum waiting time for orders (minutes)</b> determines how long the plug-in waits for Squad Orders before it will warn or remove a Squad Leaders.<br>
@@ -963,7 +966,7 @@ This means if you disable a feature or change a setting the chat message will be
 
 <blockquote> 
 <p><b>!unlead </b> <br>  
-</p>Give someone else Squad Lead if you're Squad Leader.<br>  
+</p>Give anyone else Squad Lead if you're Squad Leader.<br>  
 </blockquote> 
 
 <blockquote> 
@@ -1859,7 +1862,7 @@ This means if you disable a feature or change a setting the chat message will be
                 {
                     if (entry.getInviter() == speaker)
                     {
-                        ServerCommand("admin.say", "Your invite has been successfully sent to " + target.SoldierName, "player", speaker);
+                        ServerCommand("admin.say", "Your invite has been successfully sent to " + target.SoldierName + " Player will see this message on next death.", "player", speaker);
                         DebugWrite("admin.say Your invite has been successfully sent to " + target.SoldierName + "player" + speaker, 3);
                     }
 
@@ -2724,6 +2727,7 @@ This means if you disable a feature or change a setting the chat message will be
 
             if (squad.getID(1) < 1)
                 return;
+
             if (squad.GetSquadLeader() == soldierName)
             {
                 DebugWrite("Squad Leader ^b" + soldierName + "^n Idle Time: ^b[" + idleTime + "s]^n ", 3);
