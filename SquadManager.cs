@@ -993,7 +993,7 @@ The messages which are shown depending on the settings of your plug-in and will 
 
 <h2><p>Changelog</p></h2>  
 <blockquote><h4>0.9.7.7 (09-Jan-2015)</h4><br>  
-<li>Private test release</li><br/>
+<li>Plugin Approval release</li><br/>
 </blockquote>";
         }
         public List<CPluginVariable> GetDisplayPluginVariables()
