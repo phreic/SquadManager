@@ -890,7 +890,7 @@ You can choose the <b>Maximum Idle Time in seconds</b>. This value should be >= 
 With this option the plugin gives someone else Squad Lead if the current Squad Leader is giving no Squad Orders.<br>
 Please note: Only Squad Leader commands via Comme Rose can be counted as Orders.<br>
 <b>Only on Conquest</b> disables this feature on any other game Mode than Conquest.<br>
-<b>Maximum waiting time for orders (minutes)</b> determines how long the plug-in is waiting for Squad Orders before it will warn or remove a Squad Leader.<br>
+<b>Maximum waiting time for orders (minutes)</b> determines how long the plug-in waits for Squad Orders before it will warn or remove a Squad Leaders.<br>
 If you enable <b>Send warnings before dismiss)</b>, a Squad Leader will get your selected number of warnings before dismiss.<br>
 The interval between the warnings equals the Maximum waiting time for orders (minutes).<br>
 You can also choose whether the warnings should be shown as yell message or not.
@@ -899,8 +899,8 @@ You can also choose whether the warnings should be shown as yell message or not.
 
 <blockquote> 
 <p><b>4 - Auto Squad Leader</b><br> 
-Enable this option to give players with <b>Reserved Slot List</b>. or VIPs the possibility to be the new Squad Leader when if they use <b>!lead</b> command in chat.<br>
-You can add VIPs to the <b>Squad Leader List</b>. The Squad Leader List has a higher priority compared to the Reserved Slot List<br>
+Enable this option to give players with <b>Reserved Slot List</b> or VIPs (<b>Squad Leader List</b>) the possibility to take over the Squad Lead with <b>!lead</b> command in chat.<br>
+You can add VIPs to the <b>Squad Leader List</b>. The Squad Leader List has a higher priority than the Reserved Slot List<br>
 
 Squad Leader List >  Reserved Slot List > anyone else
 
@@ -912,7 +912,7 @@ If a Squad Leader is on the Squad Leader List, someone else from Reserved Slot o
 <blockquote> 
 <p><b>5 - Vote Squad Leaders</b><br> 
 Squad members can apply for Squad Lead with <b>!newleader</b> command.<br>
-Everyone in the Squad will receive messages and can vote for the new Squad Leader with <b>!accept</b> commmand.<br>
+Everyone in the Squad will receive messages and can vote for the new Squad Leader with <b>!accept</b> command.<br>
 <b>Votes needed:</b> How many !accept votes are needed for a successful vote.<br> 
 <b>Vote duration (seconds):</b> How long should the vote be active.<br> 
 <b>Yell vote announcement:</b> Should the vote announcement shown as a yell message?<br> 
@@ -923,13 +923,13 @@ Everyone in the Squad will receive messages and can vote for the new Squad Leade
 <p><b>6 - Squad Command Invite</b><br>  
 You can invite players to join your Squad with <b>!invite [playername]</b> command.<br> 
 Invitees can use <b>!join</b> or <b>!deny</b> command to accept or don't accept the invite.<br> 
-If the Inviter's Squad or Team is full, Invitees will join a <b>Waiting Queue</b> that will move them to the Inviters Team/Squad as soon as possible.<br> 
-The invitee gets the message on his next death.<br> 
+If the Squad or Team of the player who has invited you is full, Invitees will join a <b>Waiting Queue</b> that will move them to the Team/Squad of the player who has invited you as soon as possible.<br> 
+The invitee gets the invite message on his next death.<br> 
 This has the advantage the invitee won't get spammed with yells (if enabled) and chat messages when the invitee is in combat. <br> 
-It can also prevent most of the kills via admin move command because the invitee won't be killed again if he accepts the invite while he/she is waiting to spawn.<br> 
+It can also prevent most of the kills via admin move command because the invitee won't get killed again if he accepts the invite while he/she is waiting to spawn.<br> 
 <b>Squad Leaders only:</b> Only Squad Leaders can send invites to other players.<br> 
 <b>Allow Team Switches:</b> Players can invite other players even if they are in the enemy team.<br> 
-<b>Maximum invites per round:</b> The maximum number of inivtes a player can send during a round.<br> 
+<b>Maximum invites per round:</b> The maximum number of invites a player can send during a round.<br> 
 <b>Send invite messages how often: </b> Determines how often a invite message should be shown when the invitee is death.<br> 
 </p>
 </blockquote> 
@@ -937,7 +937,7 @@ It can also prevent most of the kills via admin move command because the invitee
 <blockquote> 
 <p><b>7 - Squad Command GiveLead</b><br>  
 If this option is enabled, Squad Leaders can give the leadership to someone else in Squad.<br>  
-Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK Squad Lead if you are currently Squad Leader.<br>  
+Example: If you are Squad Leader use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK Squad Lead if you are currently Squad Leader.<br>  
 </p>
 </blockquote> 
 
@@ -951,14 +951,14 @@ Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK S
 <p><b>9 - Dynamic Messages</b><br>  
 Decide whether the plugin should send some chat messages how this plugin can be used by the players.<br> 
 The messages will be updated automatically depending on the settings you use.<br> 
-This means if you disable a feature or change the settings on this feature, the chat message won't be shown anymore or updated. <br> 
+This means if you disable a feature or change a setting the chat message will be updated. <br> 
 </p>
 </blockquote> 
 
 <h2><p>Commands</p></h2>
 <blockquote> 
 <p><b>!lead </b> 
-</p>Give you Squad Lead if you're allowed.
+</p>Give you Squad Lead if you're allowed.(Reserved Slot, Squad Leader List)<br> 
 </blockquote> 
 
 <blockquote> 
@@ -973,7 +973,7 @@ This means if you disable a feature or change the settings on this feature, the 
 
 <blockquote> 
 <p><b>!invite [playername] </b> <br>  
-</p>Invite a player to join your Squad.<br>  
+</p>Invite a player to join your Team/Squad.<br>  
 </blockquote> 
 
 <blockquote> 
@@ -983,7 +983,7 @@ This means if you disable a feature or change the settings on this feature, the 
 
 <blockquote> 
 <p><b>!deny </b>  <br>  
-</p>Don't accept a invite. You can't get any more invites from the inviter this round.<br>  
+</p>Don't accept a invite. You can't get any more invites from the player who has invited you this round.<br>  
 </blockquote> 
 
 
