@@ -1880,7 +1880,7 @@ This means if you disable a feature or change a setting the chat message will be
 
             DebugWrite("CurrentPlayers: " + CurrentPlayers + " ServerSize " + ServerSize, 4);
 
-            if (ServerSize == 0 || PlayersList == null || !BuildComplete || CurrentPlayers == 0)
+            if (ServerSize == 0 || GameMode == String.Empty || PlayersList == null || !BuildComplete || CurrentPlayers == 0)
                 return;
 
             int TeamDestination, SquadDestination, TeamOrigin, SquadOrigin;
@@ -1888,7 +1888,12 @@ This means if you disable a feature or change a setting the chat message will be
             string target;
             SquadInviter inviter;
 
-            int MaxTeamsize = (CurrentPlayersTeams[2] == 0 && CurrentPlayersTeams[3] == 0) ? ServerSize / 2 : ServerSize / 4;
+            int MaxTeamsize;
+
+            if (GameMode == "SquadDeathMatch0")
+                MaxTeamsize = 4;
+            else
+                MaxTeamsize = 2;
 
             foreach (List<object> entry in JoinSwitchQueue)
             {
@@ -3194,7 +3199,6 @@ This means if you disable a feature or change a setting the chat message will be
             bTimer.Elapsed += new ElapsedEventHandler(SpawnPossible);
             bTimer.Interval = 25000;
             bTimer.Enabled = true;
-            GameMode = Gamemode;
             DebugWrite("Map loaded. Waiting " + (bTimer.Interval / 1000) + " seconds until round start", 1);
 
         }
