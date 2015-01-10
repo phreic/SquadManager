@@ -1,9 +1,23 @@
 /* SquadManager.cs
 
-by LumPenPacK
- * prei[-@-]me.com
+Copyright 2015 by LumPenPacK
+    
+ * Contact: prei[-@-]me.com
 
-Free to use as is in any way you want with no warranty.
+Permission is hereby granted, free of charge, to any person or organization
+obtaining a copy of the software and accompanying documentation covered by
+this license (the "Software") to use, reproduce, display, distribute,
+execute, and transmit the Software, and to prepare derivative works of the
+Software, and to permit third-parties to whom the Software is furnished to
+do so, without restriction.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
 
 */
 
@@ -824,7 +838,7 @@ namespace PRoConEvents
         }
         public string GetPluginVersion()
         {
-            return "0.9.7.8";
+            return "0.9.7.9";
         }
         public string GetPluginAuthor()
         {
@@ -909,6 +923,9 @@ Everyone in the Squad will receive messages and can vote for the new Squad Leade
 You can invite players to join your Squad with <b>!invite [playername]</b> command.<br> 
 Invitees can use <b>!join</b> or <b>!deny</b> command to accept or don't accept the invite.<br> 
 If the Inviter's Squad or Team is full, Invitees will join a <b>Waiting Queue</b> that will move them to the Inviters Team/Squad as soon as possible.<br> 
+The invitee gets the message on his next death.<br> 
+This has the advantage the invitee won't get spammed with yells (if enabled) and chat messages when the invitee is in combat. <br> 
+It can also prevent most of the kills via admin move command because the invitee won't be killed again if he accepts the invite while he/she is waiting to spawn.<br> 
 <b>Squad Leaders only:</b> Only Squad Leaders can send invites to other players.<br> 
 <b>Allow Team Switches:</b> Players can invite other players even if they are in the enemy team.<br> 
 <b>Maximum invites per round:</b> The maximum number of inivtes a player can send during a round.<br> 
@@ -931,8 +948,16 @@ Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK S
 </blockquote> 
 
 <blockquote> 
-<p><b>9 - Squad Unlock</b><br>  
+<p><b>8 - Squad Unlock</b><br>  
 <b>Unlock all Squads</b> feature can be used to force all Squads to be not private.<br> 
+</p>
+</blockquote> 
+
+<blockquote> 
+<p><b>9 - Dynamic Messages</b><br>  
+Decide whether the plugin should send some chat messages how this plugin can be used by the players.<br> 
+The messages will be updated automatically depending on the settings you use.<br> 
+This means if you disable a feature or change the settings on this feature, the chat message won't be shown anymore or updated. <br> 
 </p>
 </blockquote> 
 
@@ -998,7 +1023,7 @@ Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK S
 <p>Feel free to write any suggestion how this plugin could be improved into the plugin thread.</p><br>  
 
 <h2><p>Changelog</p></h2>  
-<blockquote><h4>0.9.7.8 (10-Jan-2015)</h4><br>  
+<blockquote><h4>0.9.7.9 (10-Jan-2015)</h4><br>  
 <li>Plugin Approval release</li><br/>
 </blockquote>";
         }
@@ -1039,10 +1064,10 @@ Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK S
 
             lstReturn.Add(new CPluginVariable("8 - Squad Unlock|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
 
-            lstReturn.Add(new CPluginVariable("9 - Messages|Send messages how to use this plugin", WriteMessages.GetType(), WriteMessages));
-            lstReturn.Add(new CPluginVariable("9 - Messages|Interval (seconds)", Interval.GetType(), Interval));
+            lstReturn.Add(new CPluginVariable("9 - Dynamic Messages|Send messages how to use this plugin", WriteMessages.GetType(), WriteMessages));
+            lstReturn.Add(new CPluginVariable("9 - Dynamic Messages|Interval (seconds)", Interval.GetType(), Interval));
 
-            lstReturn.Add(new CPluginVariable("10 - SquadManager|Debug level", fDebugLevel.GetType(), fDebugLevel));
+            lstReturn.Add(new CPluginVariable("Debug Options|Debug level", fDebugLevel.GetType(), fDebugLevel));
 
             return lstReturn;
 
@@ -1325,7 +1350,7 @@ Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK S
             return squads.getSquadLeaders();
         }
 
-        public void UnlocAllkSquads()
+        public void UnlockAllSquads()
         {
             foreach (Squad squad in squads.getSquads())
             {
@@ -2302,6 +2327,7 @@ Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK S
                 String SquadVote = String.Empty;
                 String SquadInvite = String.Empty;
                 String MoveLeadMsg = String.Empty;
+                String UnlockMsg = String.Empty;
 
                 msg = "Squad Manager Plugin is running on this server.";
                 Messages.Add(msg);
@@ -2349,6 +2375,12 @@ Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK S
                 {
                     MoveLeadMsg = "You can give up your Squad Lead with !givelead [playername] command.";
                     Messages.Add(MoveLeadMsg);
+                }
+
+                if (UnlockSquads)
+                {
+                    UnlockMsg = "Private Squads will be unlocked automatically.";
+                    Messages.Add(UnlockMsg);
                 }
 
                 if (aTimer == null)
@@ -2432,7 +2464,7 @@ Example: Use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK S
                 if (UnlockSquads)
                 {
                     DebugWrite("Unlock Squads", 3);
-                    UnlocAllkSquads();
+                    UnlockAllSquads();
                 }
 
             }
