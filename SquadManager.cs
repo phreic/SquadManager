@@ -857,7 +857,7 @@ namespace PRoConEvents
 <p>Supported Games:</b> BF4<br>
 Supported Game Modes:</b> All but not tested with SQDM yet.</p><br>
 
-<p>Do you think this plug-in useful and you want to support future updates?</p>
+<p>Do you think this plug-in useful and you want to support my work on future updates?</p>
 <form action=""https://www.paypal.com/cgi-bin/webscr"" method=""post"" target=""_blank"">
 <input type=""hidden"" name=""cmd"" value=""_s-xclick"">
 <input type=""hidden"" name=""hosted_button_id"" value=""H6MM23JN4SVHL"">
@@ -888,7 +888,8 @@ You can choose the <b>Maximum Idle Time in seconds</b>. This value should be >= 
 <blockquote> 
 <p><b>3 - Dismiss No Orders Squad Leaders</b><br> 
 With this option the plugin gives someone else Squad Lead if the current Squad Leader is giving no Squad Orders.<br>
-This feature will be disabled on any other game Mode than Conquest if you enable <b>Only on Conquest</b>.<br>
+Please note: Only Squad Leader commands via Comme Rose can be counted as Orders.<br>
+<b>Only on Conquest</b> disables this feature on any other game Mode than Conquest.<br>
 <b>Maximum waiting time for orders (minutes)</b> determines how long the plug-in is waiting for Squad Orders before it will warn or remove a Squad Leader.<br>
 If you enable <b>Send warnings before dismiss)</b>, a Squad Leader will get your selected number of warnings before dismiss.<br>
 The interval between the warnings equals the Maximum waiting time for orders (minutes).<br>
@@ -1030,7 +1031,7 @@ This means if you disable a feature or change the settings on this feature, the 
             lstReturn.Add(new CPluginVariable("2 - Dismiss Idle Squad Leaders|Dismiss Idle Squad Leaders", RemoveIdleLeader.GetType(), RemoveIdleLeader));
             lstReturn.Add(new CPluginVariable("2 - Dismiss Idle Squad Leaders|Maximum Idle Time (seconds)", MaxIdleTime.GetType(), MaxIdleTime));
 
-            lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Dismiss Squad Leaders giving no orders", RemoveNoOrdersLeader.GetType(), RemoveNoOrdersLeader));
+            lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Dismiss Squad Leaders giving no orders (via Commo Rose)", RemoveNoOrdersLeader.GetType(), RemoveNoOrdersLeader));
             lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Only on Conquest", ConquestOnly.GetType(), ConquestOnly));
             lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Maximum waiting time for orders (minutes)", MaxWaiting.GetType(), MaxWaiting));
             lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Send warnings before dismiss", SendWarnings.GetType(), SendWarnings));
@@ -1099,7 +1100,7 @@ This means if you disable a feature or change the settings on this feature, the 
                 bool.TryParse(strValue, out tmp);
                 ConquestOnly = tmp;
             }
-            else if (Regex.Match(strVariable, @"Dismiss Squad Leaders giving no orders").Success)
+            else if (Regex.Match(strVariable, @"Dismiss Squad Leaders giving no orders \(via Commo Rose\)").Success)
             {
                 bool tmp = false;
                 bool.TryParse(strValue, out tmp);
