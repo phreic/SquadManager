@@ -1931,7 +1931,7 @@ The messages which are shown depending on the settings of your plug-in and will 
                 else
                 {
                     DebugWrite("Switching player ^b" + target + "^n to Squad ^b[" + DestinationSquad.getID(0) + "][" + DestinationSquad.getName() + "^n.", 3);
-                    ServerCommand("admin.say", "Switching you to Squad [" + SquadDestination + "].", "player", target);
+                    ServerCommand("admin.say", "Switching you to Squad [" + SQUAD_NAMES[SquadDestination] + "].", "player", target);
                     ServerCommand("admin.movePlayer", target, TeamDestination.ToString(), SquadDestination.ToString(), force.ToString());
 
                     /*AdminMovesQueue.Add(TeamDestination);
