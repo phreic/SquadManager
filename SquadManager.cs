@@ -110,7 +110,8 @@ namespace PRoConEvents
         private int MaxWaiting;
         private bool YellWarnings;
         private int MaxIdleTime;
-        private bool ConquestOnly;
+        private bool ExcludeRush;
+        private bool ExcludeChainLink;
         private bool InviteCommand;
         private static int MaxInvites;
         private bool SquadLeadersOnly;
@@ -767,7 +768,8 @@ namespace PRoConEvents
             VoteDuration = 30;
             MaxWaiting = 3;
             YellWarnings = false;
-            ConquestOnly = true;
+            ExcludeRush = true;
+            ExcludeChainLink = true;
             InviteCommand = true;
             MaxInvites = 3;
             SquadLeadersOnly = false;
@@ -1031,7 +1033,8 @@ This means if you disable a feature or change a setting the chat message will be
             lstReturn.Add(new CPluginVariable("2 - Dismiss Idle Squad Leaders|Maximum Idle Time (seconds)", MaxIdleTime.GetType(), MaxIdleTime));
 
             lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Dismiss Squad Leaders giving no orders (via Commo Rose)", RemoveNoOrdersLeader.GetType(), RemoveNoOrdersLeader));
-            lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Only on Conquest", ConquestOnly.GetType(), ConquestOnly));
+            lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Exclude Rush/Obliteraion/Defuse/CTF", ExcludeRush.GetType(), ExcludeRush));
+            lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Exclude Domination/ChainLink", ExcludeChainLink.GetType(), ExcludeChainLink));
             lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Maximum waiting time for orders (minutes)", MaxWaiting.GetType(), MaxWaiting));
             lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|Send warnings before dismiss", SendWarnings.GetType(), SendWarnings));
             lstReturn.Add(new CPluginVariable("3 - Dismiss No Orders Squad Leaders|How many warnings", NoOrdersWarnings.GetType(), NoOrdersWarnings));
@@ -1093,17 +1096,24 @@ This means if you disable a feature or change a setting the chat message will be
                 RemoveIdleLeader = tmp;
             }
             // -- 3 --
-            else if (Regex.Match(strVariable, @"Only on Conquest").Success)
-            {
-                bool tmp = true;
-                bool.TryParse(strValue, out tmp);
-                ConquestOnly = tmp;
-            }
+
             else if (Regex.Match(strVariable, @"Dismiss Squad Leaders giving no orders \(via Commo Rose\)").Success)
             {
                 bool tmp = false;
                 bool.TryParse(strValue, out tmp);
                 RemoveNoOrdersLeader = tmp;
+            }
+            else if (Regex.Match(strVariable, @"Exclude Rush\/Obliteraion\/Defuse\/CTF").Success)
+            {
+                bool tmp = true;
+                bool.TryParse(strValue, out tmp);
+                ExcludeRush = tmp;
+            }
+            else if (Regex.Match(strVariable, @"|Exclude Domination\/ChainLink").Success)
+            {
+                bool tmp = true;
+                bool.TryParse(strValue, out tmp);
+                ExcludeChainLink = tmp;
             }
             else if (Regex.Match(strVariable, @"Maximum waiting time for orders \(minutes\)").Success)
             {
@@ -1531,7 +1541,13 @@ This means if you disable a feature or change a setting the chat message will be
             if (GameMode == String.Empty)
                 return;
 
-            if (ConquestOnly && (GameMode != "ConquestLarge0" || GameMode == "ConquestSmall0"))
+            if (GameMode == "TeamDeathMatch0" || GameMode == "AirSuperiority0" || GameMode == "TeamDeathMatch0")
+                return;
+
+            if (ExcludeRush && (GameMode == "RushLarge0" || GameMode == "Elimination0" || GameMode == "Obliteration") )
+                return;
+
+            if (ExcludeChainLink && (GameMode == "Domination0" || GameMode == "Chainlink0") )
                 return;
 
             foreach (Squad squad in squads.getSquads())
