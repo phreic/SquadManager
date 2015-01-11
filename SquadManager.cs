@@ -1888,6 +1888,10 @@ This means if you disable a feature or change a setting the chat message will be
 
             return;
         }
+        public void OnReGroup(String message, String speaker, Match cmd)
+        {
+
+        }
 
         public void PerformJoinSwitchQueue()
         {
@@ -3125,6 +3129,17 @@ This means if you disable a feature or change a setting the chat message will be
             if (cmd.Success)
             {
                 OnSquadInvite(message, speaker, cmd);
+                return true;
+            }
+
+            return false;
+        }
+        public bool OnReGroupChat(string message, string speaker)
+        {
+            Match cmd = Regex.Match(message, @"[!@#]regroup\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)", RegexOptions.IgnoreCase);
+            if (cmd.Success)
+            {
+                OnReGroup(message, speaker, cmd);
                 return true;
             }
 
