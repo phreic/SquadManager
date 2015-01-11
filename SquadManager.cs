@@ -1065,7 +1065,7 @@ This means if you disable a feature or change a setting the chat message will be
             lstReturn.Add(new CPluginVariable("5 - Squad Unlock|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
 
             lstReturn.Add(new CPluginVariable("6 - Dynamic Messages|Send messages how to use this plugin", WriteMessages.GetType(), WriteMessages));
-            lstReturn.Add(new CPluginVariable("7 - Dynamic Messages|Interval (seconds)", Interval.GetType(), Interval));
+            lstReturn.Add(new CPluginVariable("6 - Dynamic Messages|Interval (seconds)", Interval.GetType(), Interval));
 
             lstReturn.Add(new CPluginVariable("Debug Options|Debug level", fDebugLevel.GetType(), fDebugLevel));
 
