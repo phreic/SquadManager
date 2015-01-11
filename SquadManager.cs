@@ -905,7 +905,7 @@ You can also choose whether the warnings should be shown as yell message or not.
 </blockquote> 
 
 <blockquote> 
-<p><b>4 - Squad Command Lead</b><br> 
+<p><b>4.1 - Squad Command Lead</b><br> 
 Enable this option to give players with <b>Reserved Slot List</b> or VIPs (<b>Squad Leader List</b>) the possibility to take over the Squad Lead with <b>!lead</b> command in chat.<br>
 You can add VIPs to the <b>Squad Leader List</b>. The Squad Leader List has a higher priority than the Reserved Slot List<br>
 
@@ -917,7 +917,7 @@ If a Squad Leader is on the Squad Leader List, someone else from Reserved Slot o
 </blockquote> 
 
 <blockquote> 
-<p><b>5 - Squad Command Vote</b><br> 
+<p><b>4.2 - Squad Command Vote</b><br> 
 Squad members can apply for Squad Lead with <b>!newleader</b> command.<br>
 Everyone in the Squad will receive messages and can vote for the new Squad Leader with <b>!accept</b> command.<br>
 <b>Votes needed:</b> How many !accept votes are needed for a successful vote.<br> 
@@ -927,7 +927,7 @@ Everyone in the Squad will receive messages and can vote for the new Squad Leade
 </blockquote> 
 
 <blockquote> 
-<p><b>6 - Squad Command Invite</b><br>  
+<p><b>4.3 - Squad Command Invite</b><br>  
 You can invite players to join your Squad with <b>!invite [playername]</b> command.<br> 
 Invitees can use <b>!join</b> or <b>!deny</b> command to accept or don't accept the invite.<br> 
 If the Squad or Team of the player who has invited you is full, Invitees will join a <b>Waiting Queue</b> that will move them to the Team/Squad of the player who has invited you as soon as possible.<br> 
@@ -942,20 +942,20 @@ It can also prevent most of the kills via admin move command because the invitee
 </blockquote> 
 
 <blockquote> 
-<p><b>7 - Squad Command GiveLead</b><br>  
+<p><b>4.5 - Squad Command GiveLead</b><br>  
 If this option is enabled, Squad Leaders can give the leadership to someone else in Squad.<br>  
 Example: If you are Squad Leader use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK Squad Lead if you are currently Squad Leader.<br>  
 </p>
 </blockquote> 
 
 <blockquote> 
-<p><b>8 - Squad Unlock</b><br>  
+<p><b>5 - Squad Unlock</b><br>  
 <b>Unlock all Squads</b> feature can be used to force all Squads to be not private.<br> 
 </p>
 </blockquote> 
 
 <blockquote> 
-<p><b>9 - Dynamic Messages</b><br>  
+<p><b>6 - Dynamic Messages</b><br>  
 Decide whether the plugin should send some chat messages how this plugin can be used by the players.<br> 
 The messages will be updated automatically depending on the settings you use.<br> 
 This means if you disable a feature or change a setting the chat message will be updated. <br> 
