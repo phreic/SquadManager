@@ -1060,7 +1060,7 @@ This means if you disable a feature or change a setting the chat message will be
 
             lstReturn.Add(new CPluginVariable("4.4 - Squad Command GiveLead|Allow to give someone else Squad Lead [!givelead playername]", MoveLead.GetType(), MoveLead));
 
-            lstReturn.Add(new CPluginVariable("4.4 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
+            //lstReturn.Add(new CPluginVariable("4.4 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
 
             lstReturn.Add(new CPluginVariable("5 - Squad Unlock|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
 
@@ -1899,7 +1899,13 @@ This means if you disable a feature or change a setting the chat message will be
         }
         public void OnReGroup(String message, String speaker, Match cmd, int groupsize)
         {
-
+            //Save all playernames
+            String[] playernames = new String[groupsize];
+            for (int i = 0; i < groupsize; i++)
+            {
+                playernames[i] = cmd.Groups[i + 1].Value;
+                DebugWrite("playernames[i] " + playernames[i], 1);
+            }
         }
 
         public void PerformJoinSwitchQueue()
@@ -1925,9 +1931,9 @@ This means if you disable a feature or change a setting the chat message will be
             int MaxTeamsize;
 
             if (GameMode == "SquadDeathMatch0")
-                MaxTeamsize = 4;
+                MaxTeamsize = ServerSize/4; 
             else
-                MaxTeamsize = 2;
+                MaxTeamsize = ServerSize/2;
 
             foreach (List<object> entry in JoinSwitchQueue)
             {
@@ -2220,7 +2226,7 @@ This means if you disable a feature or change a setting the chat message will be
                 {
                     foreach (String Invitee in Inviter.getInvitees())
                     {
-                        ServerCommand("admin.say", "Invite canceled. Inviter " + Inviter.getInviter() + " has left the server", "player", Invitee);
+                        ServerCommand("admin.say", "Invite canceled. Inviter " + Inviter.getInviter() + " has left the squad or the server", "player", Invitee);
                         DebugWrite("admin.say Invite canceled. Inviter " + Inviter.getInviter() + "has left the server.", 3);
                         // Inviter left --> Dont reset vote to prevent vote spam while reconnecting to the server all the time
                         Inviter.SendMessageTo(Invitee, int.MaxValue);
@@ -2234,7 +2240,7 @@ This means if you disable a feature or change a setting the chat message will be
                         if (Invitee == player)
                         {
 
-                            ServerCommand("admin.say", "Invite canceled. Invitee " + Invitee + " has left the server", "player", Inviter.getInviter());
+                            ServerCommand("admin.say", "Invite canceled. Invitee " + Invitee + " has left the squad or the server", "player", Inviter.getInviter());
                             DebugWrite("admin.say Invite canceled. Invitee " + Invitee + "  has left the server.", 3);
                             Inviter.RemoveInvite(Invitee);
 
@@ -2703,7 +2709,10 @@ This means if you disable a feature or change a setting the chat message will be
             if (!enabled)
                 return;
 
+            Squad LookingForNewPlayer = squads.SearchSquad(soldierName);
+
             UpdateJoinSwitch(soldierName, teamId, squadId);
+
 
         }
         public override void OnPlayerSquadChange(string soldierName, int teamId, int squadId)
@@ -2763,7 +2772,7 @@ This means if you disable a feature or change a setting the chat message will be
                     DebugWrite("^2" + NewSquad.GetSquadLeader() + "^n is the first player in Squad/Team " + "^b[" + NewSquad.getID(0) + "][" + NewSquad.getName() + "]^n", 2);
             }
 
-            /*foreach (List<object> entry in JoinSwitchQueue)
+            foreach (List<object> entry in JoinSwitchQueue)
             {
                 SquadInviter SquadInviter = (SquadInviter)entry[6];
                 String Inviter = SquadInviter.getInviter();
@@ -2771,9 +2780,13 @@ This means if you disable a feature or change a setting the chat message will be
                 if (soldierName == Inviter)
                 {
                     if (squadId == 0)
+                    {
+                        RemoveJoinSwitch(soldierName);
                         return;
+                    }
                 }
-            }*/
+            }
+
 
             UpdateJoinSwitch(soldierName, teamId, squadId);
             DebugWrite("UpdateJoinSwitch() - OnSquadChange", 4);
@@ -2818,7 +2831,7 @@ This means if you disable a feature or change a setting the chat message will be
                         if (Invitee == speaker)
                         {
                             ServerCommand("admin.say", "Player " + Invitee + " has denied your invite.", "player", Inviter.getInviter());
-                            ServerCommand("admin.say", "You have denied" + Inviter.getInviter() + "\'s invite.", "player", Invitee);
+                            ServerCommand("admin.say", "You have denied " + Inviter.getInviter() + "\'s invite.", "player", Invitee);
                             DebugWrite("admin.say Player " + Invitee + " has denied your invite. player " + Inviter.getInviter(), 4);
                             Inviter.SendMessageTo(Invitee, int.MaxValue);
                             return true;
@@ -3153,52 +3166,27 @@ This means if you disable a feature or change a setting the chat message will be
             if (!Regroup)
                 return false;
 
-            Match cmd_1 = Regex.Match(message, @"[!@#]regroup\s+([^\s]{1})", RegexOptions.IgnoreCase);
+            //Pattern matches the regroup command with a minimum of 2 and maximum of 5 entered players
+            String pattern = @"[!@#]regroup\s([A-Z0-9-_]+)\s([A-Z0-9-_]+)(?:\s([A-Z0-9-_]+))?(?:\s([A-Z0-9-_]+))?(?:\s([A-Z0-9-_]+))?$";
+            Match cmd_match = Regex.Match(message, pattern, RegexOptions.IgnoreCase);
 
-            if (cmd_1.Success)
+            if (!cmd_match.Success)
+                return false;
+
+            //Count all entered player names
+            int playerCount = 0;
+            for (int i = 1; i <= 5; i++)
             {
-                Match cmd = cmd_1;
-                int GroupSize = 1;
-
-                Match cmd_2 = Regex.Match(message, @"[!@#]regroup\s+([^\s]{1})\s+([^\s]{1})", RegexOptions.IgnoreCase);
-                if (cmd_2.Success)
+                if (!cmd_match.Groups[i].Value.Equals(String.Empty))
                 {
-                    cmd = cmd_2;
-                    GroupSize = 2;
-                    Match cmd_3 = Regex.Match(message, @"[!@#]regroup\s+([^\s]{1})\s+([^\s]{1})\s+([^\s]{1})", RegexOptions.IgnoreCase);
-                    if (cmd_3.Success)
-                    {
-                        cmd = cmd_3;
-                        GroupSize = 3;
-                        Match cmd_4 = Regex.Match(message, @"[!@#]regroup\s+([^\s]{1})\s+([^\s]{1})\s+([^\s]{1})\s+([^\s]{1})", RegexOptions.IgnoreCase);
-                        if (cmd_4.Success)
-                        {
-                            cmd = cmd_4;
-                            GroupSize = 4;
-                            Match cmd_5 = Regex.Match(message, @"[!@#]regroup\s+([^\s]{1})\s+([^\s]{1})\s+([^\s]{1})\s+([^\s]{1})\s+([^\s]{1})", RegexOptions.IgnoreCase);
-
-                            if (cmd_5.Success)
-                            {
-                                ServerCommand("admin.say", "You can't regroup more than four players", "player", speaker);
-                                return true;
-                            }
-                        }
-                    }
+                    playerCount++;
                 }
-
-                DebugWrite("GroupSize: " + GroupSize, 1);
-
-                if (GroupSize == 1)
-                {
-                    ServerCommand("admin.say", "You need at least two players to regroup them.", "player", speaker);
-                    return true;
-                }
-
-                OnReGroup(message, speaker, cmd , GroupSize);
-                return true;
             }
 
-            return false;
+            OnReGroup(message, speaker, cmd_match, playerCount);
+
+            return true;
+          
         }
 
         public override void OnGlobalChat(string speaker, string message)
