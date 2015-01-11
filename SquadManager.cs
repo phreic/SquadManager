@@ -837,7 +837,7 @@ namespace PRoConEvents
         }
         public string GetPluginVersion()
         {
-            return "0.9.7.9";
+            return "0.9.8.0";
         }
         public string GetPluginAuthor()
         {
@@ -1016,7 +1016,7 @@ This means if you disable a feature or change a setting the chat message will be
 <p>Feel free to write any suggestion how this plugin could be improved into the plugin thread.</p><br>  
 
 <h2><p>Changelog</p></h2>  
-<blockquote><h4>0.9.7.9 (10-Jan-2015)</h4><br>  
+<blockquote><h4>0.9.8.0 (11-Jan-2015)</h4><br>  
 <li>Plugin Approval release</li><br/>
 </blockquote>";
         }
@@ -1347,7 +1347,7 @@ This means if you disable a feature or change a setting the chat message will be
         {
             foreach (Squad squad in squads.getSquads())
             {
-                if(squad.getID(1) > 0 && squad.getMembers().Count > 1)
+                if (squad.getID(1) > 0 && squad.getMembers().Count > 1)
                     ServerCommand("squad.private", squad.getID(0).ToString(), squad.getID(1).ToString(), "false");
             }
         }
@@ -1872,7 +1872,13 @@ This means if you disable a feature or change a setting the chat message will be
 
             return;
         }
+
         public void PerformJoinSwitchQueue()
+        {
+            PerformJoinSwitchQueue(String.Empty);
+        }
+
+        public void PerformJoinSwitchQueue(String soldiername)
         {
             if (!enabled)
                 return;
@@ -1903,6 +1909,21 @@ This means if you disable a feature or change a setting the chat message will be
                 force = (bool)entry[4];
                 target = (string)entry[5];
                 inviter = (SquadInviter)entry[6];
+
+                if (SquadDestination == 0)
+                {
+                    ServerCommand("admin.say", inviter + " has left the Squad. Waiting for new Squad.", "player", target);
+                    DebugWrite("admin.say " + inviter+ " has left the Squad. Waiting for new Squad.", 3);
+                    continue;
+                }
+
+                if (TeamDestination == 0)
+                {
+                    ServerCommand("admin.say", inviter + " has left the server. Invite canceled.", "player", target);
+                    DebugWrite("admin.say " + inviter + " has left the server. Invite canceled.", 3);
+                    JoinSwitchQueue.Remove(entry);
+                    continue;
+                }
 
 
                 DebugWrite("MaxTeamsize " + MaxTeamsize + " CurrentPlayersTeams[TeamDestination]" + CurrentPlayersTeams[TeamDestination - 1], 3);
@@ -2060,8 +2081,8 @@ This means if you disable a feature or change a setting the chat message will be
             if (!enabled)
                 return;
 
-            if (NewDestinationTeam < 1 || NewDestinationSquad < 1)
-                return;
+            /*if (NewDestinationTeam < 1 || NewDestinationSquad < 1)
+                return;*/
 
             int TeamOrigin = -1;
             int TeamDestination = -1;
@@ -2643,7 +2664,7 @@ This means if you disable a feature or change a setting the chat message will be
 
             RemoveJoinSwitch(playerInfo.SoldierName);
             DebugWrite("OnPlayerJoin - Removed", 4);
-            PerformJoinSwitchQueue();
+            PerformJoinSwitchQueue(playerInfo.SoldierName);
             DebugWrite("OnPlayerJoin - PerformJoinSwitchQueue()", 4);
 
         }
@@ -2712,7 +2733,22 @@ This means if you disable a feature or change a setting the chat message will be
                 if (NewSquad.getSize() < 2 && NewSquad.getID(1) > 0)
                     DebugWrite("^2" + NewSquad.GetSquadLeader() + "^n is the first player in Squad/Team " + "^b[" + NewSquad.getID(0) + "][" + NewSquad.getName() + "]^n", 2);
             }
-            PerformJoinSwitchQueue();
+
+            /*foreach (List<object> entry in JoinSwitchQueue)
+            {
+                SquadInviter SquadInviter = (SquadInviter)entry[6];
+                String Inviter = SquadInviter.getInviter();
+
+                if (soldierName == Inviter)
+                {
+                    if (squadId == 0)
+                        return;
+                }
+            }*/
+
+            UpdateJoinSwitch(soldierName, teamId, squadId);
+            DebugWrite("UpdateJoinSwitch() - OnSquadChange", 4);
+            PerformJoinSwitchQueue(soldierName);
             DebugWrite("PerformJoinSwitchQueue() - OnSquadChange", 4);
 
         }
@@ -3053,7 +3089,7 @@ This means if you disable a feature or change a setting the chat message will be
                         {
                             AddJoinSwitch(Invitee, Inviter);
                             DebugWrite("OnJoinChat - Added", 4);
-                            PerformJoinSwitchQueue();
+                            PerformJoinSwitchQueue(speaker);
                             DebugWrite("OnJoinChat - PerformJoinSwitchQueue()", 4);
                             return true;
                         }
@@ -3402,11 +3438,10 @@ This means if you disable a feature or change a setting the chat message will be
             if (!enabled)
                 return;
 
-            PerformJoinSwitchQueue();
+            PerformJoinSwitchQueue(soldierName);
         }
 
     } // end SquadManager
 
 } // end namespace PRoConEvents
-
 
