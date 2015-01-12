@@ -582,18 +582,14 @@ namespace PRoConEvents
             public int getVoteResult()
             {
                 if (VoteCanceled)
-                {
                     return 4;
-                }
+                if (YesVotes.Count >= VotesNeededDismiss)
+                    return 2;
+                if (VoteIsRunning())
+                    return 1;
                 else
-                {
-                    if (YesVotes.Count > VotesNeededDismiss)
-                        return 2;
-                    else if (VoteIsRunning())
-                        return 1;
-                    else
-                        return 3;
-                }
+                    return 3;
+
 
             }
 
