@@ -3114,6 +3114,8 @@ This means if you disable a feature or change a setting the chat message will be
         }
         public bool OnAcceptChat(string message, string speaker)
         {
+            if (!VoteDismiss)
+                return false;
 
             if (message.Equals("!accept"))
             {
@@ -3124,19 +3126,18 @@ This means if you disable a feature or change a setting the chat message will be
                 if (squad.getID(1) < 1)
                     return true;
 
-                if (VoteDismiss)
+                foreach (Vote Vote in Votes)
                 {
-                    foreach (Vote Vote in Votes)
-                    {
-                        if (Vote.getVoteID(0) == squad.getID(0) && Vote.getVoteID(1) == squad.getID(1))
-                            if (Vote.VoteIsRunning())
-                            {
-                                String msg = Vote.VoteYes(speaker);
-                                ServerCommand("admin.say", msg, "player", speaker);
-                                CheckVoteResults();
-                                return true;
-                            }
-                    }
+                    if (Vote.getVoteID(0).Equals(squad.getID(0)) && Vote.getVoteID(1).Equals(squad.getID(1)))
+                        
+                        if (Vote.VoteIsRunning())
+                        {
+                            DebugWrite(speaker + "'s vote has been counted", 3);
+                            String msg = Vote.VoteYes(speaker);
+                            ServerCommand("admin.say", msg, "player", speaker);
+                            CheckVoteResults();
+                            return true;
+                        }
                 }
             }
 
