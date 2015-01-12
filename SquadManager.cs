@@ -338,7 +338,10 @@ namespace PRoConEvents
 
             public int getLeaderIdleTimeLastUpdateSeconds()
             {
-                return Convert.ToInt32(DateTime.Now.Subtract(this.LastUpdated).TotalSeconds);
+                if (LastUpdated == null)
+                    return Convert.ToInt32(DateTime.Now.Subtract(DateTime.Now.AddSeconds(-300)).TotalSeconds);
+                else
+                    return Convert.ToInt32(DateTime.Now.Subtract(this.LastUpdated).TotalSeconds);
             }
 
             public List<String> getMembers()
@@ -1060,7 +1063,8 @@ This means if you disable a feature or change a setting the chat message will be
 
             lstReturn.Add(new CPluginVariable("4.4 - Squad Command GiveLead|Allow to give someone else Squad Lead [!givelead playername]", MoveLead.GetType(), MoveLead));
 
-            //lstReturn.Add(new CPluginVariable("4.4 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
+            lstReturn.Add(new CPluginVariable("4.4 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
+            lstReturn.Add(new CPluginVariable("4.4 - Squad Command Regroup|Regroup ", Regroup.GetType(), Regroup));
 
             lstReturn.Add(new CPluginVariable("5 - Squad Unlock|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
 
@@ -1461,12 +1465,13 @@ This means if you disable a feature or change a setting the chat message will be
 
             if (!RemoveIdleLeader)
                 return;
+
             foreach (CPlayerInfo player in players)
             {
                 if (player == null)
                     continue;
 
-                if (player.SoldierName == String.Empty || player.TeamID == -1 || player.SquadID == -1)
+                if (player.SoldierName == String.Empty || player.TeamID < 1 || player.SquadID < 1)
                     continue;
                 Squad squad = squads.SearchSquad(player.TeamID, player.SquadID);
 
@@ -1478,6 +1483,7 @@ This means if you disable a feature or change a setting the chat message will be
 
                 if (squad.GetSquadLeader() == player.SoldierName && squad.getSize() > 1)
                 {
+                    DebugWrite("squad.getLeaderIdleTimeLastUpdateSeconds() of " + player.SoldierName + ": " + squad.getLeaderIdleTimeLastUpdateSeconds(), 4);
 
                     if (squad.getLeaderIdleTimeLastUpdateSeconds() > 30)
                     {
@@ -1906,6 +1912,27 @@ This means if you disable a feature or change a setting the chat message will be
                 playernames[i] = cmd.Groups[i + 1].Value;
                 DebugWrite("playernames[i] " + playernames[i], 1);
             }
+
+            CPrivileges SpeakerP = GetAccountPrivileges(speaker);
+            if (!SpeakerP.CanMovePlayers)
+            {
+                ServerCommand("admin.say", "You are not allowed to regroup players.", "player", speaker);
+                DebugWrite("admin.say You are not allowed to regroup players.  " + speaker, 3);
+                return;
+            }
+
+            if (groupsize > 5)
+            {
+                ServerCommand("admin.say", "You can't regroup more than 5 players into a new Squad.", "player", speaker);
+                DebugWrite("admin.say You can't regroup more than 5 players into a new Squad " + speaker, 3);
+                return;
+            }
+
+
+
+            //foreach()
+
+
         }
 
         public void PerformJoinSwitchQueue()
@@ -3326,7 +3353,7 @@ This means if you disable a feature or change a setting the chat message will be
             bTimer = new System.Timers.Timer();
             bTimer.Start();
             bTimer.Elapsed += new ElapsedEventHandler(SpawnPossible);
-            bTimer.Interval = 25000;
+            bTimer.Interval = 30000;
             bTimer.Enabled = true;
             DebugWrite("Map loaded. Waiting " + (bTimer.Interval / 1000) + " seconds until round start", 1);
 
