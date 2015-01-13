@@ -495,6 +495,29 @@ namespace PRoConEvents
                 return SquadLeaders;
             }
 
+            public int FindEmptySqud(int TeamID)
+            {
+                bool[] TakenSquads = new bool[32];
+
+                foreach (Squad squad in SquadList)
+                {
+                    if(squad.getID(0) == TeamID && squad.getID(1) > 0) 
+                    {
+                        TakenSquads[squad.getID(1)] = true;
+
+                        if( squad.getMembers().Count == 0) 
+                        {
+                            return squad.getID(1);
+                        }
+
+                    }
+                    
+
+                }
+
+                return 1;          
+            }
+
             public void Clear()
             {
                 SquadList.Clear();
@@ -1059,8 +1082,7 @@ This means if you disable a feature or change a setting the chat message will be
 
             lstReturn.Add(new CPluginVariable("4.4 - Squad Command GiveLead|Allow to give someone else Squad Lead [!givelead playername]", MoveLead.GetType(), MoveLead));
 
-            lstReturn.Add(new CPluginVariable("4.4 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
-            lstReturn.Add(new CPluginVariable("4.4 - Squad Command Regroup|Regroup ", Regroup.GetType(), Regroup));
+            lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
 
             lstReturn.Add(new CPluginVariable("5 - Squad Unlock|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
 
@@ -1481,7 +1503,7 @@ This means if you disable a feature or change a setting the chat message will be
                 {
                     DebugWrite("squad.getLeaderIdleTimeLastUpdateSeconds() of " + player.SoldierName + ": " + squad.getLeaderIdleTimeLastUpdateSeconds(), 4);
 
-                    if (squad.getLeaderIdleTimeLastUpdateSeconds() > 30)
+                    if (squad.getLeaderIdleTimeLastUpdateSeconds() > 29)
                     {
                         DebugWrite("Need to request ^b" + player.SoldierName + "^n's IdleDuration", 3);
                         ServerCommand("player.idleDuration", squad.GetSquadLeader().ToString());
@@ -1497,10 +1519,15 @@ This means if you disable a feature or change a setting the chat message will be
 
             foreach (Squad squad in squads.getSquads())
             {
+
+                if (squad.getSize() < 2)
+                    continue;
+
                 String NewLeader = null;
+
                 if (squad.getLeaderIdleTimeSeconds() > MaxIdleTime)
                 {
-                    if (UseLeaderList)
+                    /*if (UseLeaderList)
                     {
                         foreach (String soldier in WhiteList)
                         {
@@ -1519,8 +1546,8 @@ This means if you disable a feature or change a setting the chat message will be
                                 }
 
                             }
-                    }
-                    if (squad.getSize() > 1 && NewLeader == null)
+                    }*/
+                    if (NewLeader == null)
                     {
                         NewLeader = squad.GetNoSquadLeader();
                     }
@@ -1901,6 +1928,7 @@ This means if you disable a feature or change a setting the chat message will be
         }
         public void OnReGroup(String message, String speaker, Match cmd, int groupsize)
         {
+
             //Save all playernames
             String[] playernames = new String[groupsize];
             for (int i = 0; i < groupsize; i++)
@@ -1923,7 +1951,6 @@ This means if you disable a feature or change a setting the chat message will be
                 DebugWrite("admin.say You can't regroup more than 5 players into a new Squad " + speaker, 3);
                 return;
             }
-
 
 
             //foreach()
@@ -2514,12 +2541,12 @@ This means if you disable a feature or change a setting the chat message will be
                     UpdateSquadLeaderIdleTime(PlayersList);
                 }
 
-                // Remove Idle Squad Leaders
+                /*/ Remove Idle Squad Leaders
                 if (RoundTime > 180.0 && RemoveIdleLeader)
                 {
                     DebugWrite("Check Idle Times", 3);
                     RemoveIdleSquadLeaders();
-                }
+                }*/
 
 
                 // Check Vote Results
@@ -2840,7 +2867,7 @@ This means if you disable a feature or change a setting the chat message will be
                 squad.setLeaderIdle(idleTime);
             }
 
-            if (idleTime > MaxIdleTime && RoundTime > 30.0 && RemoveIdleLeader)
+            if (idleTime > MaxIdleTime && RoundTime > 180.0 && RemoveIdleLeader)
                 RemoveIdleSquadLeaders();
 
         }
@@ -3190,7 +3217,6 @@ This means if you disable a feature or change a setting the chat message will be
         }
         public bool OnReGroupChat(string message, string speaker)
         {
-            // some regex skills might be useful...
 
             if (!Regroup)
                 return false;
