@@ -1566,7 +1566,7 @@ This means if you disable a feature or change a setting the chat message will be
                         }
 
                         ServerCommand("squad.leader", squad.getID(0).ToString(), squad.getID(1).ToString(), NewLeader);
-
+                        ServerCommand("player.idleDuration", NewLeader);
                     }
                 }
             }
