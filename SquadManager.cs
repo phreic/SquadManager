@@ -2759,8 +2759,13 @@ This means if you disable a feature or change a setting the chat message will be
             {
                 foreach (Vote vote in Votes)
                 {
-                    if (vote.getVoteInitiator() == soldierName && squadId != vote.getVoteID(1) && teamId != vote.getVoteID(0))
+                    if (vote.getVoteInitiator() == soldierName)
+                    {
+                        DebugWrite("Vote in Team/Squad ^b[" + vote.getVoteID(0) + "][" + SQUAD_NAMES[vote.getVoteID(1)] + "]^n cancled. Vote initiator " + vote.getVoteInitiator() + " left Squad.", 3);
                         vote.setVoteCanceled(true);
+                        CheckVoteResults();
+                    }
+
                 }
             }
 
