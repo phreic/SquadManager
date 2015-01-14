@@ -2889,11 +2889,8 @@ This means if you disable a feature or change a setting the chat message will be
 
                 if (soldierName == Inviter)
                 {
-                    if (squadId == 0)
-                    {
-                        RemoveJoinSwitch(soldierName);
-                        return;
-                    }
+                    RemoveJoinSwitch(soldierName);
+                    return;
                 }
             }
 
