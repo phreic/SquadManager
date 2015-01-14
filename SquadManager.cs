@@ -2541,12 +2541,12 @@ This means if you disable a feature or change a setting the chat message will be
                     UpdateSquadLeaderIdleTime(PlayersList);
                 }
 
-                /*/ Remove Idle Squad Leaders
+                // Remove Idle Squad Leaders
                 if (RoundTime > 180.0 && RemoveIdleLeader)
                 {
                     DebugWrite("Check Idle Times", 3);
                     RemoveIdleSquadLeaders();
-                }*/
+                }
 
 
                 // Check Vote Results
@@ -2867,8 +2867,9 @@ This means if you disable a feature or change a setting the chat message will be
                 squad.setLeaderIdle(idleTime);
             }
 
+            /* CAUSES DEADLOCK IF ALL SQUAD MEMBERS ARE IDLING!
             if (idleTime > MaxIdleTime && RoundTime > 180.0 && RemoveIdleLeader)
-                RemoveIdleSquadLeaders();
+                RemoveIdleSquadLeaders();*/
 
         }
 
