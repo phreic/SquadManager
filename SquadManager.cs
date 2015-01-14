@@ -2882,17 +2882,16 @@ This means if you disable a feature or change a setting the chat message will be
                     DebugWrite("^2" + NewSquad.GetSquadLeader() + "^n is the first player in Squad/Team " + "^b[" + NewSquad.getID(0) + "][" + NewSquad.getName() + "]^n", 2);
             }
 
-            foreach (List<object> entry in JoinSwitchQueue)
+	foreach (List<object> entry in JoinSwitchQueue)
             {
                 SquadInviter SquadInviter = (SquadInviter)entry[6];
                 String Inviter = SquadInviter.getInviter();
 
                 if (soldierName == Inviter)
                 {
-                 
-                        RemoveJoinSwitch(soldierName);
-                        return;
-                             }
+                    RemoveJoinSwitch(soldierName);
+                    return;
+                }
             }
 
 
