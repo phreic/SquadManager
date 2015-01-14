@@ -82,6 +82,7 @@ namespace PRoConEvents
         private int CurrentPlayers;
         private int[] CurrentPlayersTeams;
         private List<List<object>> JoinSwitchQueue;
+        private List<Squad> SquadChangeOnDeadQueue;
         public List<String> Messages;
         private int MessageCounter;
 
@@ -122,6 +123,7 @@ namespace PRoConEvents
         private bool MoveLead;
         private bool UnlockSquads;
         private bool Regroup;
+        private bool RegroupSquadOnly;
 
         public class Squad
         {
@@ -495,7 +497,7 @@ namespace PRoConEvents
                 return SquadLeaders;
             }
 
-            public int FindEmptySqud(int TeamID)
+            public int FindEmptySquad(int TeamID)
             {
                 bool[] TakenSquads = new bool[32];
 
@@ -511,11 +513,16 @@ namespace PRoConEvents
                         }
 
                     }
-                    
-
                 }
 
-                return 1;          
+                for (int i = 0; i < TakenSquads.Length; i++)
+                {
+                    if (TakenSquads[i] == false)
+                        return i;
+                }
+
+                return -1;
+          
             }
 
             public void Clear()
@@ -767,6 +774,7 @@ namespace PRoConEvents
             ListSquadInviters = new List<SquadInviter>();
             CurrentPlayers = 0;
             JoinSwitchQueue = new List<List<object>>();  // TeamOrigin, TeamDestination, SquadOrigin, SquadDestion, force
+            SquadChangeOnDeadQueue = new List<Squad>(); // TeamDestination, SquadDestion, 
             CurrentPlayersTeams = new int[4];
             MessageCounter = 0;
 
@@ -802,7 +810,8 @@ namespace PRoConEvents
             HowManyInviteMessages = 3;
             MoveLead = true;
             UnlockSquads = false;
-            Regroup = true;
+            Regroup = false;
+            RegroupSquadOnly = false;
 
         }
         public enum MessageType
@@ -1082,7 +1091,8 @@ This means if you disable a feature or change a setting the chat message will be
 
             lstReturn.Add(new CPluginVariable("4.4 - Squad Command GiveLead|Allow to give someone else Squad Lead [!givelead playername]", MoveLead.GetType(), MoveLead));
 
-            lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
+            //lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
+            //lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow only regroups within a Squad", RegroupSquadOnly.GetType(), RegroupSquadOnly));
 
             lstReturn.Add(new CPluginVariable("5 - Squad Unlock|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
 
@@ -1254,9 +1264,15 @@ This means if you disable a feature or change a setting the chat message will be
             }
             else if (Regex.Match(strVariable, @"Allow to regroup Squads \[\!regroup playernameA playernameB ...\]").Success)
             {
-                bool tmp = true;
+                bool tmp = false;
                 bool.TryParse(strValue, out tmp);
                 Regroup = tmp;
+            }
+            else if (Regex.Match(strVariable, @"Allow only regroups within a Squad").Success)
+            {
+                bool tmp = false;
+                bool.TryParse(strValue, out tmp);
+                RegroupSquadOnly = tmp;
             }
             else if (Regex.Match(strVariable, @"Unlock all Squads").Success)
             {
@@ -1388,6 +1404,9 @@ This means if you disable a feature or change a setting the chat message will be
         {
             foreach (Squad squad in squads.getSquads())
             {
+                // Do not unlock Squads which are in regroup process
+                if (SquadChangeOnDeadQueue.Contains(squad))
+                    continue;
                 if (squad.getID(1) > 0 && squad.getMembers().Count > 1)
                     ServerCommand("squad.private", squad.getID(0).ToString(), squad.getID(1).ToString(), "false");
             }
@@ -1952,10 +1971,42 @@ This means if you disable a feature or change a setting the chat message will be
                 return;
             }
 
+            // Admins can regroup without restrictions within a team (switch players on death)
+            // Reputation system for other players? 
 
-            //foreach()
+            Squad SpeakerSquad = squads.SearchSquad(speaker);
+            Squad SquadAtIndex;
 
+            int EmptySquad = squads.FindEmptySquad(SpeakerSquad.getID(0));
 
+            if (EmptySquad == -1)
+            {
+                ServerCommand("admin.say", "Can't be regroup. No empty Squad found.", "player", speaker);
+                DebugWrite("admin.say Can't be regroup. No empty Squad found.", 4);
+                return;
+            }
+
+            Squad SquadChange = new Squad(SpeakerSquad.getID(0), EmptySquad);
+
+            for( int i = 0; i < playernames.Length; i++)
+            {
+                SquadAtIndex = squads.SearchSquad(playernames[i]);
+                
+                if(RegroupSquadOnly) 
+                {
+                    if(SquadAtIndex.getID(0) != SpeakerSquad.getID(0)) 
+                    {
+                        ServerCommand("admin.say", "Player " + playernames[i] +  " can't be regrouped. Player isn't a member of your Squad.", "player", speaker);
+                        DebugWrite("admin.say Player  " + playernames[i] +  " can't be regrouped. Player isn't a member of your Squad.", 3);
+                        continue;
+                    }
+                 }
+
+                SquadChange.AddPlayer(playernames[i]);
+            }
+
+            SquadChangeOnDeadQueue.Add(SquadChange);   
+          
         }
 
         public void PerformJoinSwitchQueue()
@@ -1963,6 +2014,10 @@ This means if you disable a feature or change a setting the chat message will be
             PerformJoinSwitchQueue(String.Empty);
         }
 
+        public void SquadChangeOnDead(String SoldierName, int TeamID, int SquadID)
+        {
+
+        }
         public void PerformJoinSwitchQueue(String soldiername)
         {
             if (!enabled)
