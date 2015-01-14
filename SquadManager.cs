@@ -82,6 +82,7 @@ namespace PRoConEvents
         private int CurrentPlayers;
         private int[] CurrentPlayersTeams;
         private List<List<object>> JoinSwitchQueue;
+        private List<Squad> SquadChangeOnDeadQueue;
         public List<String> Messages;
         private int MessageCounter;
 
@@ -122,6 +123,7 @@ namespace PRoConEvents
         private bool MoveLead;
         private bool UnlockSquads;
         private bool Regroup;
+        private bool RegroupSquadOnly;
 
         public class Squad
         {
@@ -495,6 +497,34 @@ namespace PRoConEvents
                 return SquadLeaders;
             }
 
+            public int FindEmptySquad(int TeamID)
+            {
+                bool[] TakenSquads = new bool[32];
+
+                foreach (Squad squad in SquadList)
+                {
+                    if(squad.getID(0) == TeamID && squad.getID(1) > 0) 
+                    {
+                        TakenSquads[squad.getID(1)] = true;
+
+                        if( squad.getMembers().Count == 0) 
+                        {
+                            return squad.getID(1);
+                        }
+
+                    }
+                }
+
+                for (int i = 0; i < TakenSquads.Length; i++)
+                {
+                    if (TakenSquads[i] == false)
+                        return i;
+                }
+
+                return -1;
+          
+            }
+
             public void Clear()
             {
                 SquadList.Clear();
@@ -582,18 +612,14 @@ namespace PRoConEvents
             public int getVoteResult()
             {
                 if (VoteCanceled)
-                {
                     return 4;
-                }
+                if (YesVotes.Count >= VotesNeededDismiss)
+                    return 2;
+                if (VoteIsRunning())
+                    return 1;
                 else
-                {
-                    if (YesVotes.Count > VotesNeededDismiss)
-                        return 2;
-                    else if (VoteIsRunning())
-                        return 1;
-                    else
-                        return 3;
-                }
+                    return 3;
+
 
             }
 
@@ -748,6 +774,7 @@ namespace PRoConEvents
             ListSquadInviters = new List<SquadInviter>();
             CurrentPlayers = 0;
             JoinSwitchQueue = new List<List<object>>();  // TeamOrigin, TeamDestination, SquadOrigin, SquadDestion, force
+            SquadChangeOnDeadQueue = new List<Squad>(); // TeamDestination, SquadDestion, 
             CurrentPlayersTeams = new int[4];
             MessageCounter = 0;
 
@@ -784,6 +811,7 @@ namespace PRoConEvents
             MoveLead = true;
             UnlockSquads = false;
             Regroup = true;
+            RegroupSquadOnly = false;
 
         }
         public enum MessageType
@@ -1063,8 +1091,8 @@ This means if you disable a feature or change a setting the chat message will be
 
             lstReturn.Add(new CPluginVariable("4.4 - Squad Command GiveLead|Allow to give someone else Squad Lead [!givelead playername]", MoveLead.GetType(), MoveLead));
 
-            lstReturn.Add(new CPluginVariable("4.4 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
-            lstReturn.Add(new CPluginVariable("4.4 - Squad Command Regroup|Regroup ", Regroup.GetType(), Regroup));
+            lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
+            lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow only regroups within a Squad", RegroupSquadOnly.GetType(), RegroupSquadOnly));
 
             lstReturn.Add(new CPluginVariable("5 - Squad Unlock|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
 
@@ -1240,6 +1268,12 @@ This means if you disable a feature or change a setting the chat message will be
                 bool.TryParse(strValue, out tmp);
                 Regroup = tmp;
             }
+            else if (Regex.Match(strVariable, @"Allow only regroups within a Squad").Success)
+            {
+                bool tmp = false;
+                bool.TryParse(strValue, out tmp);
+                RegroupSquadOnly = tmp;
+            }
             else if (Regex.Match(strVariable, @"Unlock all Squads").Success)
             {
                 bool tmp = true;
@@ -1370,6 +1404,9 @@ This means if you disable a feature or change a setting the chat message will be
         {
             foreach (Squad squad in squads.getSquads())
             {
+                // Do not unlock Squads which are in regroup process
+                if (SquadChangeOnDeadQueue.Contains(squad))
+                    continue;
                 if (squad.getID(1) > 0 && squad.getMembers().Count > 1)
                     ServerCommand("squad.private", squad.getID(0).ToString(), squad.getID(1).ToString(), "false");
             }
@@ -1485,7 +1522,7 @@ This means if you disable a feature or change a setting the chat message will be
                 {
                     DebugWrite("squad.getLeaderIdleTimeLastUpdateSeconds() of " + player.SoldierName + ": " + squad.getLeaderIdleTimeLastUpdateSeconds(), 4);
 
-                    if (squad.getLeaderIdleTimeLastUpdateSeconds() > 30)
+                    if (squad.getLeaderIdleTimeLastUpdateSeconds() > 29)
                     {
                         DebugWrite("Need to request ^b" + player.SoldierName + "^n's IdleDuration", 3);
                         ServerCommand("player.idleDuration", squad.GetSquadLeader().ToString());
@@ -1501,10 +1538,15 @@ This means if you disable a feature or change a setting the chat message will be
 
             foreach (Squad squad in squads.getSquads())
             {
+
+                if (squad.getSize() < 2)
+                    continue;
+
                 String NewLeader = null;
+
                 if (squad.getLeaderIdleTimeSeconds() > MaxIdleTime)
                 {
-                    if (UseLeaderList)
+                    /*if (UseLeaderList)
                     {
                         foreach (String soldier in WhiteList)
                         {
@@ -1523,8 +1565,8 @@ This means if you disable a feature or change a setting the chat message will be
                                 }
 
                             }
-                    }
-                    if (squad.getSize() > 1 && NewLeader == null)
+                    }*/
+                    if (NewLeader == null)
                     {
                         NewLeader = squad.GetNoSquadLeader();
                     }
@@ -1543,7 +1585,7 @@ This means if you disable a feature or change a setting the chat message will be
                         }
 
                         ServerCommand("squad.leader", squad.getID(0).ToString(), squad.getID(1).ToString(), NewLeader);
-
+                        ServerCommand("player.idleDuration", NewLeader);
                     }
                 }
             }
@@ -1905,6 +1947,7 @@ This means if you disable a feature or change a setting the chat message will be
         }
         public void OnReGroup(String message, String speaker, Match cmd, int groupsize)
         {
+
             //Save all playernames
             String[] playernames = new String[groupsize];
             for (int i = 0; i < groupsize; i++)
@@ -1928,11 +1971,42 @@ This means if you disable a feature or change a setting the chat message will be
                 return;
             }
 
+            // Admins can regroup without restrictions within a team (switch players on death)
+            // Reputation system for other players? 
 
+            Squad SpeakerSquad = squads.SearchSquad(speaker);
+            Squad SquadAtIndex;
 
-            //foreach()
+            int EmptySquad = squads.FindEmptySquad(SpeakerSquad.getID(0));
 
+            if (EmptySquad == -1)
+            {
+                ServerCommand("admin.say", "Can't be regroup. No empty Squad found.", "player", speaker);
+                DebugWrite("admin.say Can't be regroup. No empty Squad found.", 4);
+                return;
+            }
 
+            Squad SquadChange = new Squad(SpeakerSquad.getID(0), EmptySquad);
+
+            for( int i = 0; i < playernames.Length; i++)
+            {
+                SquadAtIndex = squads.SearchSquad(playernames[i]);
+                
+                if(RegroupSquadOnly) 
+                {
+                    if(SquadAtIndex.getID(0) != SpeakerSquad.getID(0)) 
+                    {
+                        ServerCommand("admin.say", "Player " + playernames[i] +  " can't be regrouped. Player isn't a member of your Squad.", "player", speaker);
+                        DebugWrite("admin.say Player  " + playernames[i] +  " can't be regrouped. Player isn't a member of your Squad.", 3);
+                        continue;
+                    }
+                 }
+
+                SquadChange.AddPlayer(playernames[i]);
+            }
+
+            SquadChangeOnDeadQueue.Add(SquadChange);   
+          
         }
 
         public void PerformJoinSwitchQueue()
@@ -1940,6 +2014,10 @@ This means if you disable a feature or change a setting the chat message will be
             PerformJoinSwitchQueue(String.Empty);
         }
 
+        public void SquadChangeOnDead(String SoldierName, int TeamID, int SquadID)
+        {
+
+        }
         public void PerformJoinSwitchQueue(String soldiername)
         {
             if (!enabled)
@@ -2763,8 +2841,13 @@ This means if you disable a feature or change a setting the chat message will be
             {
                 foreach (Vote vote in Votes)
                 {
-                    if (vote.getVoteInitiator() == soldierName && squadId != vote.getVoteID(1) && teamId != vote.getVoteID(0))
+                    if (vote.getVoteInitiator() == soldierName)
+                    {
+                        DebugWrite("Vote in Team/Squad ^b[" + vote.getVoteID(0) + "][" + SQUAD_NAMES[vote.getVoteID(1)] + "]^n cancled. Vote initiator " + vote.getVoteInitiator() + " left Squad.", 3);
                         vote.setVoteCanceled(true);
+                        CheckVoteResults();
+                    }
+
                 }
             }
 
@@ -2839,8 +2922,9 @@ This means if you disable a feature or change a setting the chat message will be
                 squad.setLeaderIdle(idleTime);
             }
 
-            if (idleTime > MaxIdleTime && RoundTime > 30.0 && RemoveIdleLeader)
-                RemoveIdleSquadLeaders();
+            /* CAUSES DEADLOCK IF ALL SQUAD MEMBERS ARE IDLING!
+            if (idleTime > MaxIdleTime && RoundTime > 180.0 && RemoveIdleLeader)
+                RemoveIdleSquadLeaders();*/
 
         }
 
@@ -3114,6 +3198,8 @@ This means if you disable a feature or change a setting the chat message will be
         }
         public bool OnAcceptChat(string message, string speaker)
         {
+            if (!VoteDismiss)
+                return false;
 
             if (message.Equals("!accept"))
             {
@@ -3124,19 +3210,18 @@ This means if you disable a feature or change a setting the chat message will be
                 if (squad.getID(1) < 1)
                     return true;
 
-                if (VoteDismiss)
+                foreach (Vote Vote in Votes)
                 {
-                    foreach (Vote Vote in Votes)
-                    {
-                        if (Vote.getVoteID(0) == squad.getID(0) && Vote.getVoteID(1) == squad.getID(1))
-                            if (Vote.VoteIsRunning())
-                            {
-                                String msg = Vote.VoteYes(speaker);
-                                ServerCommand("admin.say", msg, "player", speaker);
-                                CheckVoteResults();
-                                return true;
-                            }
-                    }
+                    if (Vote.getVoteID(0).Equals(squad.getID(0)) && Vote.getVoteID(1).Equals(squad.getID(1)))
+                        
+                        if (Vote.VoteIsRunning())
+                        {
+                            DebugWrite(speaker + "'s vote has been counted", 3);
+                            String msg = Vote.VoteYes(speaker);
+                            ServerCommand("admin.say", msg, "player", speaker);
+                            CheckVoteResults();
+                            return true;
+                        }
                 }
             }
 
@@ -3188,7 +3273,6 @@ This means if you disable a feature or change a setting the chat message will be
         }
         public bool OnReGroupChat(string message, string speaker)
         {
-            // some regex skills might be useful...
 
             if (!Regroup)
                 return false;
@@ -3353,7 +3437,7 @@ This means if you disable a feature or change a setting the chat message will be
             bTimer = new System.Timers.Timer();
             bTimer.Start();
             bTimer.Elapsed += new ElapsedEventHandler(SpawnPossible);
-            bTimer.Interval = 25000;
+            bTimer.Interval = 30000;
             bTimer.Enabled = true;
             DebugWrite("Map loaded. Waiting " + (bTimer.Interval / 1000) + " seconds until round start", 1);
 
