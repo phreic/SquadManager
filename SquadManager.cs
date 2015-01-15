@@ -3069,9 +3069,6 @@ This means if you disable a feature or change a setting the chat message will be
 
             if (message.Equals("!newleader"))
             {
-                if (!VoteDismiss)
-                    return true;
-
                 // Check if player is in Squad
                 Squad squad = squads.SearchSquad(speaker);
                 if (squad == null)
