@@ -1284,7 +1284,7 @@ This means if you disable a feature or change a setting the chat message will be
             {
                 bool tmp = false;
                 bool.TryParse(strValue, out tmp);
-                UnlockSquads = tmp;
+                WriteMessages = tmp;
             }
             else if (Regex.Match(strVariable, @"Interval \(seconds\)").Success)
             {
