@@ -3526,12 +3526,11 @@ This means if you disable a feature or change a setting the chat message will be
             if (PlayersList == null)
                 return true;
 
-            //Count all entered player names
+            // Count all entered player names
             int playerCount = 0;
             int found = 0;
             string[] targets = new string[cmd_match.Groups.Count-1];
             string msg = String.Empty;
-
 
             for (int i = 1; i <= cmd_match.Groups.Count; i++)
             {
@@ -3569,15 +3568,28 @@ This means if you disable a feature or change a setting the chat message will be
                 }
             }
 
-            foreach(string entry in targets)
+            for( int i = 0; i < targets.Length; i++ )
             {
-                if (entry != null)
+                if (targets[i] != null)
                 {
-                    ServerCommand("admin.say", "Found players: " + entry, "player", speaker);
-                    DebugWrite("admin.say Found players: " + entry + "player" + speaker, 4);
+                    for( int j = 0; j < targets.Length; j++ )
+                    {
+                        if (i != j && targets[i] == targets[j])
+                        {
+                            ServerCommand("admin.say", "Player " + targets[i]  + " has been selected more than once. Try again.", "player", speaker);
+                            DebugWrite("admin.say Player " + targets[i] + " has been selected more than once. Try again." + speaker, 4);
+                            return true;
+                        }
+                    }
+
+                    ServerCommand("admin.say", "Found players: " + targets[i], "player", speaker);
+                    DebugWrite("admin.say Found players: " + targets[i] + "player" + speaker, 4);
+
                 }
 
             }
+
+
 
 
             //OnReGroup(message, speaker, target, playerCount);
