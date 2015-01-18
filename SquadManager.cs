@@ -2141,10 +2141,8 @@ This means if you disable a feature or change a setting the chat message will be
                         DebugWrite("admin.say Moving you into your new Squad ["+ squad.getID(0) +"][" + SQUAD_NAMES[NewSquadID] + "]", 3);
                         ServerCommand("admin.movePlayer", SoldierName, squad.getID(0).ToString(), NewSquadID.ToString(), "true");
 
-                        squad.Open();
-                        
-                        squad.RemPlayer(SoldierName);
-
+                        squad.Open();                        
+                     
                         if (squad.SquadLeaderKnown() && SoldierName == squad.GetSquadLeader())
                             ServerCommand("squad.leader", squad.getID(0).ToString(), NewSquadID.ToString(), squad.GetSquadLeader());
 
@@ -3144,6 +3142,10 @@ This means if you disable a feature or change a setting the chat message will be
                                     DebugWrite("admin.say This Squad has been reserved. Moving you back.", 3);
                                     ServerCommand("admin.movePlayer", soldierName, teamId.ToString(), "0", "true");
                                 }
+                            }
+                            else if(squad.getMembers().Contains(soldierName)) 
+                            {
+                                squad.RemPlayer(soldierName);
                             }
                         }
                     }
