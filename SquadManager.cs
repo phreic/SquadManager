@@ -1036,9 +1036,22 @@ It can also prevent most of the kills via admin move command because the invitee
 </blockquote> 
 
 <blockquote> 
-<p><b>4.5 - Squad Command GiveLead</b><br>  
+<p><b>4.4 - Squad Command GiveLead</b><br>  
 If this option is enabled, Squad Leaders can give the leadership to someone else in Squad.<br>  
 Example: If you are Squad Leader use the command <b>!givelead LumPenPacK</b> to give player LumPenPacK Squad Lead if you are currently Squad Leader.<br>  
+</p>
+</blockquote> 
+
+<blockquote> 
+<p><b>4.5 - Squad Command Regroup</b><br>  
+Admins with ""CanMovePlayers"" privileges can use this command to regroup players within a team into a new Squad.<br>  
+<b>!regroup [group of playernames]</b> selects a group of up to 5 players who will be moved into a new empty squad. <br>  
+The members of this group will be moved one by one into a new Squad once they are killed. (This will prevent a ""killed by admin"" death due to the admin move command kills players.)<br>  
+
+As long as the regroup hasn't been completed, the new Squad is set to private to prevent other players can take the slot for those players from the group who are still waiting for the Squad change. <br>  
+If a player who is not part of the group is still able to join the new Squad, the plugin will remove him/her from Squad if he/she would use a slot for one of those players who are still waiting for the Squad change.<br>  
+
+Optional setting: Only allow regroup command within an existing Squad. This means you can't regroup players from different Squads.<br>  
 </p>
 </blockquote> 
 
