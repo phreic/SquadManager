@@ -125,6 +125,7 @@ namespace PRoConEvents
         private bool Regroup;
         private bool RegroupSquadOnly;
         private bool MergeSquads;
+        private bool UseAdminList;
 
         public class Squad
         {
@@ -846,6 +847,7 @@ namespace PRoConEvents
             NoOrdersWarnings = 3;
             WhiteList = new List<String>();
             UseReservedList = false;
+            UseAdminList = true;
             VoteDismiss = false;
             VotesNeededDismiss = 3;
             UseLeaderList = false;
@@ -869,6 +871,8 @@ namespace PRoConEvents
             Regroup = true;
             RegroupSquadOnly = false;
             MergeSquads = true;
+            
+
 
         }
         public enum MessageType
@@ -929,7 +933,7 @@ namespace PRoConEvents
         }
         public string GetPluginVersion()
         {
-            return "0.9.8.1";
+            return "0.9.9.0";
         }
         public string GetPluginAuthor()
         {
@@ -996,6 +1000,8 @@ You can also choose whether the warnings should be shown as yell message or not.
 <p><b>4.1 - Squad Command Lead</b><br> 
 Enable this option to give players with <b>Reserved Slot List</b> or VIPs (<b>Squad Leader List</b>) the possibility to take over the Squad Lead with <b>!lead</b> command in chat.<br>
 You can add VIPs to the <b>Squad Leader List</b>. The Squad Leader List has a higher priority than the Reserved Slot List<br>
+Additional you can allow every admin to use !lead command, regardless whether the current Squad Leader is an Admin, VIP, or a player with Reserved Slot.<br>
+Admins need the right to move players between Squads and Teams to do that.<br>
 
 Squad Leader List >  Reserved Slot List > anyone else
 
@@ -1110,7 +1116,13 @@ This means if you disable a feature or change a setting the chat message will be
 <h2><p>Changelog</p></h2>  
 <blockquote><h4>0.9.8.1 (11-Jan-2015)</h4><br>  
 <li>Plugin Approval release</li><br/>
+</blockquote>
+<blockquote><h4>0.9.9.0 (19-Jan-2015)</h4><br>  
+<li>Regroup command ready for testing</li><br/>
+<li>Admins can use !lead command anytime (if enabled)</li><br/>
+<li>Bug Fixes</li><br/>
 </blockquote>";
+
         }
         public List<CPluginVariable> GetDisplayPluginVariables()
         {
@@ -1133,6 +1145,7 @@ This means if you disable a feature or change a setting the chat message will be
             lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Enforce Squad Lead [!lead]", Enforce.GetType(), Enforce));
             lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Use Reserved Slot List", UseReservedList.GetType(), UseReservedList));
             lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Use Squad Leader List", UseLeaderList.GetType(), UseLeaderList));
+            lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Allow Admins to use this command anytime", UseAdminList.GetType(), UseAdminList));
             lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Squad Leaders List", typeof(string[]), WhiteList.ToArray()));
 
             lstReturn.Add(new CPluginVariable("4.2 - Squad Command Vote|Allow Vote new Squad Leader [!newleader]", VoteDismiss.GetType(), VoteDismiss));
@@ -1250,6 +1263,12 @@ This means if you disable a feature or change a setting the chat message will be
                 bool tmp = false;
                 bool.TryParse(strValue, out tmp);
                 UseReservedList = tmp;
+            }
+            else if (Regex.Match(strVariable, @"Allow Admins to use this command anytime").Success)
+            {
+                bool tmp = true;
+                bool.TryParse(strValue, out tmp);
+                UseAdminList = tmp;
             }
             else if (Regex.Match(strVariable, @"Enforce Squad Lead \[\!lead\]").Success)
             {
@@ -2018,7 +2037,13 @@ This means if you disable a feature or change a setting the chat message will be
             
 
             CPrivileges SpeakerP = GetAccountPrivileges(speaker);
-            if (SpeakerP == null || !SpeakerP.CanMovePlayers)
+            if (SpeakerP == null)
+            {
+                ServerCommand("admin.say", "You are not allowed to regroup players.", "player", speaker);
+                DebugWrite("admin.say You are not allowed to regroup players.  " + speaker, 3);
+                return;
+            }
+            else if(!SpeakerP.CanMovePlayers) 
             {
                 ServerCommand("admin.say", "You are not allowed to regroup players.", "player", speaker);
                 DebugWrite("admin.say You are not allowed to regroup players.  " + speaker, 3);
@@ -3253,8 +3278,22 @@ This means if you disable a feature or change a setting the chat message will be
 
 
                 bool Permission = false;
+
+                if (UseAdminList)
+                {
+                    CPrivileges SpeakerP = GetAccountPrivileges(speaker);
+                    if (SpeakerP != null)
+                    {
+                        if (SpeakerP.CanMovePlayers)
+                        {
+                            Permission = true;
+                        }
+                    }
+
+                }
+
                 if (UseLeaderList)
-                    if (WhiteList.Contains(speaker) && !WhiteList.Contains(squad.GetSquadLeader()))
+                    if (Permission == false && WhiteList.Contains(speaker) && !WhiteList.Contains(squad.GetSquadLeader()))
                     {
                         DebugWrite("^b" + speaker + "^n ask for lead of Squad ^b[" + squad.getID(0) + "][" + squad.getName() + "]^n. Player is in Squad List.", 3);
                         Permission = true;
