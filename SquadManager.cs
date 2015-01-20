@@ -269,19 +269,10 @@ namespace PRoConEvents
                     return String.Empty;
                 }
 
-                if (Members.Count == 2)
-                {
-                    return (Members[0] == GetSquadLeader()) ? Members[1] : Members[0];
-                }
+                //Choose next player in squad after current leader
+                int index = (Members.IndexOf(GetSquadLeader()) + 1) % getSize();
 
-                Random rnd = new Random();
-                int index = rnd.Next(Members.Count);
-                String NewLeader = Members[index];
-
-                if (NewLeader == GetSquadLeader())
-                    return (Members[0] == GetSquadLeader()) ? Members[1] : Members[0];
-                else
-                    return NewLeader;
+                return Members[index];
             }
 
             public int getOrderWarnings()
