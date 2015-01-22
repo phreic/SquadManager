@@ -2853,7 +2853,10 @@ This means if you disable a feature or change a setting the chat message will be
                 if (player.SoldierName == String.Empty)
                     continue;
 
-                tmp++;
+                if (player.Type != 0)
+                    continue;
+
+                ++tmp;
 
                 if (player.TeamID > 0)
                     tmpT[player.TeamID - 1]++;
@@ -2960,7 +2963,8 @@ This means if you disable a feature or change a setting the chat message will be
             if (!enabled)
                 return;
 
-            CurrentPlayers--;
+            if (playerInfo.Type == 0)
+                CurrentPlayers--;
 
             if (playerInfo == null || PlayersList == null)
                 return;
