@@ -2964,10 +2964,13 @@ This means if you disable a feature or change a setting the chat message will be
             if (!enabled)
                 return;
 
+            if (playerInfo == null)
+                return;
+
             if (playerInfo.Type == 0)
                 CurrentPlayers--;
 
-            if (playerInfo == null || PlayersList == null)
+            if (PlayersList == null)
                 return;
 
             PlayersList.Remove(playerInfo);          
