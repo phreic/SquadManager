@@ -816,7 +816,6 @@ namespace PRoConEvents
             ReservedSlotsReceived = null;
             NewPlayersQueue = new List<NewPlayer>();
             started = true;
-            bTimer = null;
             PlayersList = new List<CPlayerInfo>();
             RestoreOnRoundStart = new List<String>();
             Votes = new List<Vote>();
@@ -827,6 +826,21 @@ namespace PRoConEvents
             SquadChangeOnDeadQueue = new List<Squad>(); // TeamDestination, SquadDestion, 
             CurrentPlayersTeams = new int[4];
             MessageCounter = 0;
+
+            bTimer = new System.Timers.Timer();
+            bTimer.Interval = 30000;
+            bTimer.Elapsed += new ElapsedEventHandler(SpawnPossible);
+            bTimer.Stop();
+
+            PluginIntervalTimer = new System.Timers.Timer();
+            PluginIntervalTimer.Interval = 30000;
+            PluginIntervalTimer.Elapsed += new ElapsedEventHandler(PluginInterval);
+            PluginIntervalTimer.Stop();
+
+            cTimer = new System.Timers.Timer();
+            cTimer.Interval = 20000;
+            cTimer.Elapsed += new ElapsedEventHandler(PerformSwitchQueueBeforeScramble);
+            cTimer.Stop();
 
 
             Messages = new List<String>();
@@ -1414,7 +1428,7 @@ This means if you disable a feature or change a setting the chat message will be
         public void OnPluginDisable()
         {
             enabled = false;
-            PluginIntervalTimer = null;
+            PluginIntervalTimer.Stop();
             WaitingSquadList = false;
             WaitingSquadLeaders = false;
             BuildComplete = false;
@@ -1425,9 +1439,9 @@ This means if you disable a feature or change a setting the chat message will be
             RoundTime = 0.0;
             ReservedSlotsReceived = null;
             started = true;
-            bTimer = null;
-            aTimer = null;
-            cTimer = null;
+            bTimer.Stop();
+            aTimer.Stop();
+            cTimer.Stop();
             RestoreComplete = true;
             PlayersList = null;
             RestoreOnRoundStart = null;
@@ -2749,17 +2763,22 @@ This means if you disable a feature or change a setting the chat message will be
                 int IntervalMS = Interval * 1000;
 
                 if (aTimer == null)
+                {
                     aTimer = new System.Timers.Timer();
+                    aTimer.Interval = IntervalMS;
+                    aTimer.Elapsed += new ElapsedEventHandler(OnIntervalMessages);
+                }
+
 
                 if (aTimer.Interval != IntervalMS)
                 {
-                    aTimer = new System.Timers.Timer();
+                    aTimer.Stop();
+                    aTimer.Interval = IntervalMS;
+                    aTimer.Start();
                 }
 
                 if (!aTimer.Enabled)
                 {
-                    aTimer.Interval = IntervalMS;
-                    aTimer.Elapsed += new ElapsedEventHandler(OnIntervalMessages);
                     aTimer.Start();
                 }
 
@@ -2963,13 +2982,16 @@ This means if you disable a feature or change a setting the chat message will be
             if (!enabled)
                 return;
 
+            if (playerInfo == null)
+                return;
+
             if (playerInfo.Type == 0)
                 CurrentPlayers--;
 
-            if (playerInfo == null || PlayersList == null)
+            if (PlayersList == null)
                 return;
 
-            PlayersList.Remove(playerInfo);          
+            PlayersList.Remove(playerInfo);
 
             if (playerInfo.TeamID > 0)
                 CurrentPlayersTeams[playerInfo.TeamID - 1]--;
@@ -3792,11 +3814,8 @@ This means if you disable a feature or change a setting the chat message will be
                 DebugWrite("Found Squad Leader " + SquadLeader + " of Team/Squad ^b[" + OldSquad.getID(0) + "][" + OldSquad.getName() + "]^n", 3);
             }
 
-            cTimer = new System.Timers.Timer();
-            cTimer.Interval = 20000;
-            cTimer.Elapsed += new ElapsedEventHandler(PerformSwitchQueueBeforeScramble);
             cTimer.Start();
-            
+
         }
         public override void OnLevelLoaded(string mapFileName, string Gamemode, int roundsPlayed, int roundsTotal)
         {
@@ -3806,9 +3825,6 @@ This means if you disable a feature or change a setting the chat message will be
             GameMode = Gamemode;
             RoundTime = 0.0;
 
-            bTimer = new System.Timers.Timer();
-            bTimer.Interval = 30000;
-            bTimer.Elapsed += new ElapsedEventHandler(SpawnPossible);
             bTimer.Start();
 
             DebugWrite("Map loaded. Waiting " + (bTimer.Interval / 1000) + " seconds until round start", 1);
@@ -3826,9 +3842,6 @@ This means if you disable a feature or change a setting the chat message will be
                 DebugWrite("Round is currently running.", 1);
                 ServerCommand("listPlayers", "all");
 
-                PluginIntervalTimer = new System.Timers.Timer();
-                PluginIntervalTimer.Interval = 30000;
-                PluginIntervalTimer.Elapsed += new ElapsedEventHandler(PluginInterval);
                 PluginIntervalTimer.Start();
 
                 return;
@@ -3857,9 +3870,6 @@ This means if you disable a feature or change a setting the chat message will be
                 DebugWrite("Round is currently running.", 1);
                 ServerCommand("listPlayers", "all");
 
-                PluginIntervalTimer = new System.Timers.Timer();
-                PluginIntervalTimer.Interval = 30000;
-                PluginIntervalTimer.Elapsed += new ElapsedEventHandler(PluginInterval);
                 PluginIntervalTimer.Start();
 
 
