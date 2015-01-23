@@ -816,7 +816,6 @@ namespace PRoConEvents
             ReservedSlotsReceived = null;
             NewPlayersQueue = new List<NewPlayer>();
             started = true;
-            bTimer = null;
             PlayersList = new List<CPlayerInfo>();
             RestoreOnRoundStart = new List<String>();
             Votes = new List<Vote>();
@@ -827,6 +826,21 @@ namespace PRoConEvents
             SquadChangeOnDeadQueue = new List<Squad>(); // TeamDestination, SquadDestion, 
             CurrentPlayersTeams = new int[4];
             MessageCounter = 0;
+
+            bTimer = new System.Timers.Timer();
+            bTimer.Interval = 30000;
+            bTimer.Elapsed += new ElapsedEventHandler(SpawnPossible);
+            bTimer.Stop();
+
+            PluginIntervalTimer = new System.Timers.Timer();
+            PluginIntervalTimer.Interval = 30000;
+            PluginIntervalTimer.Elapsed += new ElapsedEventHandler(PluginInterval);
+            PluginIntervalTimer.Stop();
+
+            cTimer = new System.Timers.Timer();
+            cTimer.Interval = 20000;
+            cTimer.Elapsed += new ElapsedEventHandler(PerformSwitchQueueBeforeScramble);
+            cTimer.Stop();
 
 
             Messages = new List<String>();
@@ -926,7 +940,7 @@ namespace PRoConEvents
         }
         public string GetPluginVersion()
         {
-            return "0.9.9.1";
+            return "0.9.9.0";
         }
         public string GetPluginAuthor()
         {
@@ -1036,7 +1050,7 @@ Example: If you are Squad Leader use the command <b>!givelead LumPenPacK</b> to 
 </blockquote> 
 
 <blockquote> 
-<p><b>4.5 - Squad Command Regroup - testing phase</b><br>  
+<p><b>4.5 - Squad Command Regroup</b><br>  
 Admins with ""CanMovePlayers"" privileges can use this command to regroup players within a team into a new Squad.<br>  
 <b>!regroup [group of playernames]</b> selects a group of up to 5 players who will be moved into a new empty squad. <br>  
 The members of this group will be moved one by one into a new Squad once they are killed. (This will prevent a ""killed by admin"" death due to the admin move command kills players.)<br>  
@@ -1124,9 +1138,8 @@ This means if you disable a feature or change a setting the chat message will be
 <li>Plugin Approval release</li><br/>
 </blockquote>
 <blockquote><h4>0.9.9.0 (19-Jan-2015)</h4><br>  
-<li>Bug Fixes</li><br/>
-</blockquote>
-<blockquote><h4>0.9.9.1 (23-Jan-2015)</h4><br>  
+<li>Regroup command ready for testing</li><br/>
+<li>Admins can use !lead command anytime (if enabled)</li><br/>
 <li>Bug Fixes</li><br/>
 </blockquote>";
 
@@ -1415,7 +1428,7 @@ This means if you disable a feature or change a setting the chat message will be
         public void OnPluginDisable()
         {
             enabled = false;
-            PluginIntervalTimer = null;
+            PluginIntervalTimer.Stop();
             WaitingSquadList = false;
             WaitingSquadLeaders = false;
             BuildComplete = false;
@@ -1426,9 +1439,9 @@ This means if you disable a feature or change a setting the chat message will be
             RoundTime = 0.0;
             ReservedSlotsReceived = null;
             started = true;
-            bTimer = null;
-            aTimer = null;
-            cTimer = null;
+            bTimer.Stop();
+            aTimer.Stop();
+            cTimer.Stop();
             RestoreComplete = true;
             PlayersList = null;
             RestoreOnRoundStart = null;
@@ -2750,17 +2763,22 @@ This means if you disable a feature or change a setting the chat message will be
                 int IntervalMS = Interval * 1000;
 
                 if (aTimer == null)
+                {
                     aTimer = new System.Timers.Timer();
+                    aTimer.Interval = IntervalMS;
+                    aTimer.Elapsed += new ElapsedEventHandler(OnIntervalMessages);
+                }
+
 
                 if (aTimer.Interval != IntervalMS)
                 {
-                    aTimer = new System.Timers.Timer();
+                    aTimer.Stop();
+                    aTimer.Interval = IntervalMS;
+                    aTimer.Start();
                 }
 
                 if (!aTimer.Enabled)
                 {
-                    aTimer.Interval = IntervalMS;
-                    aTimer.Elapsed += new ElapsedEventHandler(OnIntervalMessages);
                     aTimer.Start();
                 }
 
@@ -2973,7 +2991,7 @@ This means if you disable a feature or change a setting the chat message will be
             if (PlayersList == null)
                 return;
 
-            PlayersList.Remove(playerInfo);          
+            PlayersList.Remove(playerInfo);
 
             if (playerInfo.TeamID > 0)
                 CurrentPlayersTeams[playerInfo.TeamID - 1]--;
@@ -3796,11 +3814,8 @@ This means if you disable a feature or change a setting the chat message will be
                 DebugWrite("Found Squad Leader " + SquadLeader + " of Team/Squad ^b[" + OldSquad.getID(0) + "][" + OldSquad.getName() + "]^n", 3);
             }
 
-            cTimer = new System.Timers.Timer();
-            cTimer.Interval = 20000;
-            cTimer.Elapsed += new ElapsedEventHandler(PerformSwitchQueueBeforeScramble);
             cTimer.Start();
-            
+
         }
         public override void OnLevelLoaded(string mapFileName, string Gamemode, int roundsPlayed, int roundsTotal)
         {
@@ -3810,9 +3825,6 @@ This means if you disable a feature or change a setting the chat message will be
             GameMode = Gamemode;
             RoundTime = 0.0;
 
-            bTimer = new System.Timers.Timer();
-            bTimer.Interval = 30000;
-            bTimer.Elapsed += new ElapsedEventHandler(SpawnPossible);
             bTimer.Start();
 
             DebugWrite("Map loaded. Waiting " + (bTimer.Interval / 1000) + " seconds until round start", 1);
@@ -3830,9 +3842,6 @@ This means if you disable a feature or change a setting the chat message will be
                 DebugWrite("Round is currently running.", 1);
                 ServerCommand("listPlayers", "all");
 
-                PluginIntervalTimer = new System.Timers.Timer();
-                PluginIntervalTimer.Interval = 30000;
-                PluginIntervalTimer.Elapsed += new ElapsedEventHandler(PluginInterval);
                 PluginIntervalTimer.Start();
 
                 return;
@@ -3861,9 +3870,6 @@ This means if you disable a feature or change a setting the chat message will be
                 DebugWrite("Round is currently running.", 1);
                 ServerCommand("listPlayers", "all");
 
-                PluginIntervalTimer = new System.Timers.Timer();
-                PluginIntervalTimer.Interval = 30000;
-                PluginIntervalTimer.Elapsed += new ElapsedEventHandler(PluginInterval);
                 PluginIntervalTimer.Start();
 
 
