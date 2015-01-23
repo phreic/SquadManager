@@ -269,19 +269,10 @@ namespace PRoConEvents
                     return String.Empty;
                 }
 
-                if (Members.Count == 2)
-                {
-                    return (Members[0] == GetSquadLeader()) ? Members[1] : Members[0];
-                }
+                //Choose next player in squad after current leader
+                int index = (Members.IndexOf(GetSquadLeader()) + 1) % getSize();
 
-                Random rnd = new Random();
-                int index = rnd.Next(Members.Count);
-                String NewLeader = Members[index];
-
-                if (NewLeader == GetSquadLeader())
-                    return (Members[0] == GetSquadLeader()) ? Members[1] : Members[0];
-                else
-                    return NewLeader;
+                return Members[index];
             }
 
             public int getOrderWarnings()
@@ -379,18 +370,20 @@ namespace PRoConEvents
             bool SquadLeaderIsSet;
             int NewSquadID;
 
-            public VirtualSquad(String FirstPlayer, int TeamID, int SquadID) : base(FirstPlayer, TeamID, SquadID)
+            public VirtualSquad(String FirstPlayer, int TeamID, int SquadID)
+                : base(FirstPlayer, TeamID, SquadID)
             {
 
             }
 
-            public VirtualSquad(int TeamID, int SquadID) : base(TeamID, SquadID)
+            public VirtualSquad(int TeamID, int SquadID)
+                : base(TeamID, SquadID)
             {
 
             }
 
 
-            public void Open() 
+            public void Open()
             {
                 this.opened = true;
             }
@@ -405,7 +398,7 @@ namespace PRoConEvents
                 return opened;
             }
 
-            public bool SquadLeaderKnown() 
+            public bool SquadLeaderKnown()
             {
                 return SquadLeaderIsSet;
             }
@@ -868,10 +861,10 @@ namespace PRoConEvents
             HowManyInviteMessages = 3;
             MoveLead = true;
             UnlockSquads = false;
-            Regroup = false;
+            Regroup = true;
             RegroupSquadOnly = false;
             MergeSquads = true;
-            
+
 
 
         }
@@ -933,7 +926,7 @@ namespace PRoConEvents
         }
         public string GetPluginVersion()
         {
-            return "0.9.8.9";
+            return "0.9.9.1";
         }
         public string GetPluginAuthor()
         {
@@ -1043,7 +1036,7 @@ Example: If you are Squad Leader use the command <b>!givelead LumPenPacK</b> to 
 </blockquote> 
 
 <blockquote> 
-<p><b>4.5 - Squad Command Regroup - no ready for use yet </b><br>  
+<p><b>4.5 - Squad Command Regroup - testing phase</b><br>  
 Admins with ""CanMovePlayers"" privileges can use this command to regroup players within a team into a new Squad.<br>  
 <b>!regroup [group of playernames]</b> selects a group of up to 5 players who will be moved into a new empty squad. <br>  
 The members of this group will be moved one by one into a new Squad once they are killed. (This will prevent a ""killed by admin"" death due to the admin move command kills players.)<br>  
@@ -1130,7 +1123,10 @@ This means if you disable a feature or change a setting the chat message will be
 <blockquote><h4>0.9.8.1 (11-Jan-2015)</h4><br>  
 <li>Plugin Approval release</li><br/>
 </blockquote>
-<blockquote><h4>0.9.8.9 (19-Jan-2015)</h4><br>  
+<blockquote><h4>0.9.9.0 (19-Jan-2015)</h4><br>  
+<li>Bug Fixes</li><br/>
+</blockquote>
+<blockquote><h4>0.9.9.1 (23-Jan-2015)</h4><br>  
 <li>Bug Fixes</li><br/>
 </blockquote>";
 
@@ -1887,9 +1883,7 @@ This means if you disable a feature or change a setting the chat message will be
             if (!enabled)
                 return;
 
-            bTimer.Enabled = false;
             bTimer.Stop();
-            bTimer = null;
             DebugWrite("Round has started.", 1);
             WaitingSquadList = true;
             WaitingSquadLeaders = true;
@@ -2045,7 +2039,7 @@ This means if you disable a feature or change a setting the chat message will be
         public void OnReGroup(String message, String speaker, string[] targets, int groupsize)
         {
 
-            
+
 
             CPrivileges SpeakerP = GetAccountPrivileges(speaker);
             if (SpeakerP == null)
@@ -2054,7 +2048,7 @@ This means if you disable a feature or change a setting the chat message will be
                 DebugWrite("admin.say You are not allowed to regroup players.  " + speaker, 3);
                 return;
             }
-            else if(!SpeakerP.CanMovePlayers) 
+            else if (!SpeakerP.CanMovePlayers)
             {
                 ServerCommand("admin.say", "You are not allowed to regroup players.", "player", speaker);
                 DebugWrite("admin.say You are not allowed to regroup players.  " + speaker, 3);
@@ -2127,7 +2121,7 @@ This means if you disable a feature or change a setting the chat message will be
                     VirtualSquad.SetSquadLeader(speaker);
                     VirtualSquad.SetSquadLeaderKnown();
                 }
-                        
+
             }
 
             SquadChangeOnDeadQueue.Add(VirtualSquad);
@@ -2143,7 +2137,7 @@ This means if you disable a feature or change a setting the chat message will be
             if (!BuildComplete)
                 return;
 
-            if(SquadChangeOnDeadQueue.Count == 0)
+            if (SquadChangeOnDeadQueue.Count == 0)
                 return;
 
             foreach (VirtualSquad squad in SquadChangeOnDeadQueue)
@@ -2153,7 +2147,7 @@ This means if you disable a feature or change a setting the chat message will be
                     if (Member == SoldierName)
                     {
                         int NewSquadID = 0;
-                        if(squad.IsSquadOpen() == false) 
+                        if (squad.IsSquadOpen() == false)
                         {
                             NewSquadID = squads.FindEmptySquad(squad.getID(0));
                             squad.SetNewSquadID(NewSquadID);
@@ -2174,22 +2168,22 @@ This means if you disable a feature or change a setting the chat message will be
                         }
 
                         ServerCommand("admin.say", "Moving you into your new Squad [" + SQUAD_NAMES[NewSquadID] + "]", "player", SoldierName);
-                        DebugWrite("admin.say Moving you into your new Squad ["+ squad.getID(0) +"][" + SQUAD_NAMES[NewSquadID] + "]", 3);
+                        DebugWrite("admin.say Moving you into your new Squad [" + squad.getID(0) + "][" + SQUAD_NAMES[NewSquadID] + "]", 3);
                         ServerCommand("admin.movePlayer", SoldierName, squad.getID(0).ToString(), NewSquadID.ToString(), "true");
 
-                        squad.Open();                        
-                     
+                        squad.Open();
+
                         if (squad.SquadLeaderKnown() && SoldierName == squad.GetSquadLeader())
                             ServerCommand("squad.leader", squad.getID(0).ToString(), NewSquadID.ToString(), squad.GetSquadLeader());
 
                         // ReGroup complete
-                        if (squad.getMembers().Count == 0) 
+                        if (squad.getMembers().Count == 0)
                         {
                             ServerCommand("squad.private", squad.getID(0).ToString(), NewSquadID.ToString(), "false");
                             SquadChangeOnDeadQueue.Remove(squad);
 
                             // else TODO
-                        }          
+                        }
                         else
                             ServerCommand("squad.private", squad.getID(0).ToString(), NewSquadID.ToString(), "true");
 
@@ -2312,9 +2306,7 @@ This means if you disable a feature or change a setting the chat message will be
             if (cTimer == null)
                 return;
 
-            cTimer.Enabled = false;
             cTimer.Stop();
-            cTimer = null;
             DebugWrite("PerformJoinSwitchQueue()", 4);
             PerformJoinSwitchQueue();
             ListSquadInviters.Clear();
@@ -2324,7 +2316,7 @@ This means if you disable a feature or change a setting the chat message will be
         }
         public int[] AddJoinSwitch(String Invitee, SquadInviter Inviter)
         {
-            int[] DestinationTeamSquad = new int[] {-1, -1};
+            int[] DestinationTeamSquad = new int[] { -1, -1 };
 
             if (!enabled)
                 return DestinationTeamSquad;
@@ -2755,25 +2747,21 @@ This means if you disable a feature or change a setting the chat message will be
                     Messages.Add(UnlockMsg);
                 }
 
+                int IntervalMS = Interval * 1000;
+
                 if (aTimer == null)
                     aTimer = new System.Timers.Timer();
 
-                int IntervalMS = Interval * 1000;
-
                 if (aTimer.Interval != IntervalMS)
                 {
-                    aTimer.Interval = IntervalMS;
-                    aTimer = null;
                     aTimer = new System.Timers.Timer();
                 }
 
-
                 if (!aTimer.Enabled)
                 {
-                    aTimer.Start();
-                    aTimer.Elapsed += new ElapsedEventHandler(OnIntervalMessages);
                     aTimer.Interval = IntervalMS;
-                    aTimer.Enabled = true;
+                    aTimer.Elapsed += new ElapsedEventHandler(OnIntervalMessages);
+                    aTimer.Start();
                 }
 
             }
@@ -2863,7 +2851,13 @@ This means if you disable a feature or change a setting the chat message will be
                 if (player == null)
                     continue;
 
-                tmp++;
+                if (player.SoldierName == String.Empty)
+                    continue;
+
+                if (player.Type != 0)
+                    continue;
+
+                ++tmp;
 
                 if (player.TeamID > 0)
                     tmpT[player.TeamID - 1]++;
@@ -2937,10 +2931,10 @@ This means if you disable a feature or change a setting the chat message will be
                 DebugWrite("All Squad Leaders received", 1);
 
                 if (RestoreSquads)
-                { 
+                {
                     RestoreSquadsLeaders();
                 }
-                    
+
                 RebuildJoinSwitch();
             }
 
@@ -2970,12 +2964,13 @@ This means if you disable a feature or change a setting the chat message will be
             if (!enabled)
                 return;
 
+            if (playerInfo.Type == 0)
+                CurrentPlayers--;
+
             if (playerInfo == null || PlayersList == null)
                 return;
 
-            PlayersList.Remove(playerInfo);
-
-            CurrentPlayers--;
+            PlayersList.Remove(playerInfo);          
 
             if (playerInfo.TeamID > 0)
                 CurrentPlayersTeams[playerInfo.TeamID - 1]--;
@@ -3172,14 +3167,14 @@ This means if you disable a feature or change a setting the chat message will be
                                         ServerCommand("admin.movePlayer", soldierName, teamId.ToString(), "0", "true");
                                     }
                                 }
-                                else if(squad.getMembers().Count == 5) 
+                                else if (squad.getMembers().Count == 5)
                                 {
                                     ServerCommand("admin.say", "This Squad has been reserved. Moving you back.", "player", soldierName);
                                     DebugWrite("admin.say This Squad has been reserved. Moving you back.", 3);
                                     ServerCommand("admin.movePlayer", soldierName, teamId.ToString(), "0", "true");
                                 }
                             }
-                            else if(squad.getMembers().Contains(soldierName)) 
+                            else if (squad.getMembers().Contains(soldierName))
                             {
                                 squad.RemPlayer(soldierName);
                             }
@@ -3613,7 +3608,7 @@ This means if you disable a feature or change a setting the chat message will be
             // Count all entered player names
             int playerCount = 0;
             int found = 0;
-            string[] targets = new string[cmd_match.Groups.Count-1];
+            string[] targets = new string[cmd_match.Groups.Count - 1];
             string msg = String.Empty;
 
             for (int i = 1; i <= cmd_match.Groups.Count; i++)
@@ -3626,7 +3621,7 @@ This means if you disable a feature or change a setting the chat message will be
                     {
                         if (p == null)
                             continue;
-                       
+
                         if (Regex.Match(p.SoldierName, cmd_match.Groups[i].Value, RegexOptions.IgnoreCase).Success)
                         {
                             ++found;
@@ -3652,15 +3647,15 @@ This means if you disable a feature or change a setting the chat message will be
                 }
             }
 
-            for( int i = 0; i < targets.Length; i++ )
+            for (int i = 0; i < targets.Length; i++)
             {
                 if (targets[i] != null)
                 {
-                    for( int j = 0; j < targets.Length; j++ )
+                    for (int j = 0; j < targets.Length; j++)
                     {
                         if (i != j && targets[i] == targets[j])
                         {
-                            ServerCommand("admin.say", "Player " + targets[i]  + " has been selected more than once. Try again.", "player", speaker);
+                            ServerCommand("admin.say", "Player " + targets[i] + " has been selected more than once. Try again.", "player", speaker);
                             DebugWrite("admin.say Player " + targets[i] + " has been selected more than once. Try again." + speaker, 4);
                             return true;
                         }
@@ -3799,11 +3794,10 @@ This means if you disable a feature or change a setting the chat message will be
             }
 
             cTimer = new System.Timers.Timer();
-            cTimer.Start();
-            cTimer.Elapsed += new ElapsedEventHandler(PerformSwitchQueueBeforeScramble);
             cTimer.Interval = 20000;
-            cTimer.Enabled = true;
-
+            cTimer.Elapsed += new ElapsedEventHandler(PerformSwitchQueueBeforeScramble);
+            cTimer.Start();
+            
         }
         public override void OnLevelLoaded(string mapFileName, string Gamemode, int roundsPlayed, int roundsTotal)
         {
@@ -3814,10 +3808,10 @@ This means if you disable a feature or change a setting the chat message will be
             RoundTime = 0.0;
 
             bTimer = new System.Timers.Timer();
-            bTimer.Start();
-            bTimer.Elapsed += new ElapsedEventHandler(SpawnPossible);
             bTimer.Interval = 30000;
-            bTimer.Enabled = true;
+            bTimer.Elapsed += new ElapsedEventHandler(SpawnPossible);
+            bTimer.Start();
+
             DebugWrite("Map loaded. Waiting " + (bTimer.Interval / 1000) + " seconds until round start", 1);
 
         }
@@ -3834,15 +3828,13 @@ This means if you disable a feature or change a setting the chat message will be
                 ServerCommand("listPlayers", "all");
 
                 PluginIntervalTimer = new System.Timers.Timer();
-                PluginIntervalTimer.Start();
-                PluginIntervalTimer.Elapsed += new ElapsedEventHandler(PluginInterval);
                 PluginIntervalTimer.Interval = 30000;
-                PluginIntervalTimer.Enabled = true;
+                PluginIntervalTimer.Elapsed += new ElapsedEventHandler(PluginInterval);
+                PluginIntervalTimer.Start();
 
                 return;
 
             }
-
 
             Squad squad = squads.SearchSquad(soldierName);
             if (squad == null)
@@ -3867,10 +3859,10 @@ This means if you disable a feature or change a setting the chat message will be
                 ServerCommand("listPlayers", "all");
 
                 PluginIntervalTimer = new System.Timers.Timer();
-                PluginIntervalTimer.Start();
-                PluginIntervalTimer.Elapsed += new ElapsedEventHandler(PluginInterval);
                 PluginIntervalTimer.Interval = 30000;
-                PluginIntervalTimer.Enabled = true;
+                PluginIntervalTimer.Elapsed += new ElapsedEventHandler(PluginInterval);
+                PluginIntervalTimer.Start();
+
 
                 return;
             }
@@ -4029,6 +4021,25 @@ This means if you disable a feature or change a setting the chat message will be
 
             //PerformJoinSwitchQueue(soldierName);
         }
+
+        /*public override void OnLevelStarted() 
+        {
+            if (!enabled)
+                return;
+
+            DebugWrite("Round has started.", 1);
+            WaitingSquadList = true;
+            WaitingSquadLeaders = true;
+            BuildComplete = false;
+            BuildCompleteMessageSent = false;
+            squads = null;
+            Votes = null;
+            Votes = new List<Vote>();
+            squads = new Squads();
+            SquadSwitchPossible = true;
+            PlayersList = null;
+            ServerCommand("listPlayers", "all");
+        }*/
 
     } // end SquadManager
 
