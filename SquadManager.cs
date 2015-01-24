@@ -1185,7 +1185,7 @@ This means if you disable a feature or change a setting the chat message will be
             lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow only regroups within a Squad", RegroupSquadOnly.GetType(), RegroupSquadOnly));
 
             lstReturn.Add(new CPluginVariable("5 - Miscellaneous|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
-            lstReturn.Add(new CPluginVariable("5 - Miscellaneous|Merge Squads", MergeSquads.GetType(), MergeSquads));
+            //lstReturn.Add(new CPluginVariable("5 - Miscellaneous|Merge Squads", MergeSquads.GetType(), MergeSquads));
 
             lstReturn.Add(new CPluginVariable("6 - Dynamic Messages|Send messages how to use this plugin", WriteMessages.GetType(), WriteMessages));
             lstReturn.Add(new CPluginVariable("6 - Dynamic Messages|Interval (seconds)", Interval.GetType(), Interval));
@@ -2734,7 +2734,7 @@ This means if you disable a feature or change a setting the chat message will be
                 {
                     if (UseLeaderList)
                     {
-                        AutoLead = "Every player having a Reserved Slot can use !lead command to get Squad Leader.";
+                        AutoLead = "Every player having a Reserved Slot can use !lead command to get Squad Lead.";
                         Messages.Add(AutoLead);
                     }
 
