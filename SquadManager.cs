@@ -1181,8 +1181,8 @@ This means if you disable a feature or change a setting the chat message will be
 
             lstReturn.Add(new CPluginVariable("4.4 - Squad Command GiveLead|Allow to give someone else Squad Lead [!givelead playername]", MoveLead.GetType(), MoveLead));
 
-            //lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
-            //lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow only regroups within a Squad", RegroupSquadOnly.GetType(), RegroupSquadOnly));
+            lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
+            lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow only regroups within a Squad", RegroupSquadOnly.GetType(), RegroupSquadOnly));
 
             lstReturn.Add(new CPluginVariable("5 - Miscellaneous|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
             //lstReturn.Add(new CPluginVariable("5 - Miscellaneous|Merge Squads", MergeSquads.GetType(), MergeSquads));
@@ -2033,18 +2033,10 @@ This means if you disable a feature or change a setting the chat message will be
 
             ServerCommand("player.isAlive", target.SoldierName);
 
-            if (fDebugLevel > 1)
-            {
-                foreach (SquadInviter entry in ListSquadInviters)
-                {
-                    if (entry.getInviter() == speaker)
-                    {
-                        ServerCommand("admin.say", "Your invite has been successfully sent to " + target.SoldierName + " Player will see this message on next death.", "player", speaker);
-                        DebugWrite("admin.say Your invite has been successfully sent to " + target.SoldierName + "player" + speaker, 3);
-                    }
+            ServerCommand("admin.say", "Your invite has been successfully sent to " + target.SoldierName + " Player will see this message on next death.", "player", speaker);
+            DebugWrite("admin.say Your invite has been successfully sent to " + target.SoldierName + "player" + speaker, 3);
 
-                }
-            }
+
 
 
             return;
@@ -2454,9 +2446,16 @@ This means if you disable a feature or change a setting the chat message will be
                             }
                             else
                             {
-
                                 TeamOrigin = InviteeS.getID(0);
                                 SquadOrigin = InviteeS.getID(1);
+
+                                if (TeamOrigin == TeamDestination && SquadOrigin == SquadDestination)
+                                {
+                                    ServerCommand("admin.say", "Player has joined the Squad manually.", "player", Invitee);
+                                    DebugWrite("admin.say Player " + Invitee + " has joined the Squad manually.", 3);
+                                    Inviter.SendMessageTo(Invitee, int.MaxValue);
+                                }
+
                             }
 
                             break;
@@ -2727,7 +2726,7 @@ This means if you disable a feature or change a setting the chat message will be
                 {
                     if (UseLeaderList)
                     {
-                        AutoLead = "Every player having a Reserved Slot can use !lead command to get Squad Leader.";
+                        AutoLead = "Every player having a Reserved Slot can use !lead command to get Squad Lead.";
                         Messages.Add(AutoLead);
                     }
 
@@ -3672,6 +3671,16 @@ This means if you disable a feature or change a setting the chat message will be
             {
                 if (targets[i] != null)
                 {
+
+                    foreach (VirtualSquad squad in SquadChangeOnDeadQueue)
+                    {
+                        if (squad.getMembers().Contains(targets[i]))
+                        {
+                            ServerCommand("admin.say", "Player " + targets[i] + " is already waiting for regroup, try again!", "player", speaker);
+                            DebugWrite("admin.say Player " + targets[i] + " is already waiting for regroup, try again!  player " + speaker, 4);
+                        }
+                    }
+
                     for (int j = 0; j < targets.Length; j++)
                     {
                         if (i != j && targets[i] == targets[j])
@@ -3920,9 +3929,15 @@ This means if you disable a feature or change a setting the chat message will be
                                 if (InviterSquad == null)
                                     continue;
 
+                                if (kKillerVictimDetails.Victim.TeamID == InviterSquad.getID(0) && kKillerVictimDetails.Victim.SquadID == InviterSquad.getID(1))
+                                {
+                                    Inviter.SendMessageTo(kKillerVictimDetails.Victim.SoldierName, int.MaxValue);
+                                    return;
+                                }
+
                                 Inviter.SendMessageTo(kKillerVictimDetails.Victim.SoldierName);
 
-                                if (kKillerVictimDetails.Victim.TeamID == InviterSquad.getID(1))
+                                if (kKillerVictimDetails.Victim.TeamID == InviterSquad.getID(0))
                                 {
                                     ServerCommand("admin.say", "Player " + Inviter.getInviter() + " has invited you to join Squad " + InviterSquad.getName() + ". Type !join to accept.", "player", Invitee);
                                     ServerCommand("admin.yell", "Player " + Inviter.getInviter() + StripModifiers(E(" has invited you to join Squad " + InviterSquad.getName() + ".\n  Type '!join' to accept\nor '!deny' to reject.")), "15", "player", Invitee);
@@ -3932,6 +3947,7 @@ This means if you disable a feature or change a setting the chat message will be
                                 else
                                 {
                                     ServerCommand("admin.say", "Player " + Inviter.getInviter() + " has invited you to switch the Team and join Squad " + InviterSquad.getName() + ". Type !join to accept.", "player", Invitee);
+                                    ServerCommand("admin.yell", "Player " + Inviter.getInviter() + StripModifiers(E(" has invited you to switch the Team and join Squad " + InviterSquad.getName() + ".\n  Type '!join' to accept\nor '!deny' to reject.")), "15", "player", Invitee);
                                     DebugWrite("admin.say Player " + Inviter.getInviter() + " has invited you to join Squad " + InviterSquad.getName() + "Type !join to accept. player" + Invitee, 4);
                                 }
 
@@ -3999,9 +4015,15 @@ This means if you disable a feature or change a setting the chat message will be
                                 if (InviterSquad == null)
                                     continue;
 
+                                if (TeamID == InviterSquad.getID(0) && SquadID == InviterSquad.getID(1))
+                                {
+                                    Inviter.SendMessageTo(soldierName, int.MaxValue);
+                                    return;
+                                }
+
                                 Inviter.SendMessageTo(soldierName);
 
-                                if (TeamID == InviterSquad.getID(1))
+                                if (TeamID == InviterSquad.getID(0))
                                 {
                                     ServerCommand("admin.say", "Player " + Inviter.getInviter() + " has invited you to join Squad " + InviterSquad.getName() + ". Type !join to accept.", "player", Invitee);
                                     ServerCommand("admin.yell", "Player " + Inviter.getInviter() + StripModifiers(E(" has invited you to join Squad " + InviterSquad.getName() + ".\n  Type '!join' to accept\nor '!deny' to reject.")), "15", "player", Invitee);
@@ -4010,7 +4032,8 @@ This means if you disable a feature or change a setting the chat message will be
                                 }
                                 else
                                 {
-                                    ServerCommand("admin.say", "Player " + Inviter.getInviter() + " has invited you to switch the Team and join Squad" + InviterSquad.getName() + ". Type !join to accept.", "player", Invitee);
+                                    ServerCommand("admin.say", "Player " + Inviter.getInviter() + " has invited you to switch the Team and join Squad " + InviterSquad.getName() + ". Type !join to accept.", "player", Invitee);
+                                    ServerCommand("admin.yell", "Player " + Inviter.getInviter() + StripModifiers(E(" has invited you to switch the Team and join Squad " + InviterSquad.getName() + ".\n  Type '!join' to accept\nor '!deny' to reject.")), "15", "player", Invitee);
                                     DebugWrite("admin.say Player " + Inviter.getInviter() + " has invited you to join Squad " + InviterSquad.getName() + "Type !join to accept. player" + Invitee, 3);
                                 }
 
