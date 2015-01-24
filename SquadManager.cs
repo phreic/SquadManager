@@ -2454,9 +2454,16 @@ This means if you disable a feature or change a setting the chat message will be
                             }
                             else
                             {
-
                                 TeamOrigin = InviteeS.getID(0);
                                 SquadOrigin = InviteeS.getID(1);
+
+                                if (TeamOrigin == TeamDestination && SquadOrigin == SquadDestination)
+                                {
+                                    ServerCommand("admin.say", "Player has joined the Squad manually.", "player", Invitee);
+                                    DebugWrite("admin.say Player " + Invitee + " has joined the Squad manually.", 3);
+                                    Inviter.SendMessageTo(Invitee, int.MaxValue);
+                                }
+
                             }
 
                             break;
@@ -3672,6 +3679,16 @@ This means if you disable a feature or change a setting the chat message will be
             {
                 if (targets[i] != null)
                 {
+
+                    foreach (VirtualSquad squad in SquadChangeOnDeadQueue)
+                    {
+                        if (squad.getMembers().Contains(targets[i]))
+                        {
+                            ServerCommand("admin.say", "Player " + targets[i] + " is already waiting for regroup, try again!", "player", speaker);
+                            DebugWrite("admin.say Player " + targets[i] + " is already waiting for regroup, try again!  player " + speaker, 4);
+                        }
+                    }
+
                     for (int j = 0; j < targets.Length; j++)
                     {
                         if (i != j && targets[i] == targets[j])
