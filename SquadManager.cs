@@ -4101,14 +4101,14 @@ This means if you disable a feature or change a setting the chat message will be
                                 {
                                     ServerCommand("admin.say", "Player " + Inviter.getInviter() + " has invited you to join Squad " + InviterSquad.getName() + ". Type !join to accept.", "player", Invitee);
                                     ServerCommand("admin.yell", "Player " + Inviter.getInviter() + StripModifiers(E(" has invited you to join Squad " + InviterSquad.getName() + ".\n  Type '!join' to accept\nor '!deny' to reject.")), "15", "player", Invitee);
-                                    DebugWrite("admin.say Player " + Inviter.getInviter() + " has invited " + Invitee + " to join Squad " + InviterSquad.getName(), 2);
+                                    DebugWrite("Player " + Inviter.getInviter() + " has invited " + Invitee + " to join Squad " + InviterSquad.getName() + " --> " + Invitee, 2);
 
                                 }
                                 else
                                 {
                                     ServerCommand("admin.say", "Player " + Inviter.getInviter() + " has invited you to switch the Team and join Squad " + InviterSquad.getName() + ". Type !join to accept.", "player", Invitee);
                                     ServerCommand("admin.yell", "Player " + Inviter.getInviter() + StripModifiers(E(" has invited you to switch the Team and join Squad " + InviterSquad.getName() + ".\n  Type '!join' to accept\nor '!deny' to reject.")), "15", "player", Invitee);
-                                    DebugWrite("admin.say Player " + Inviter.getInviter() + " has invited " + Invitee + " to join Squad " + InviterSquad.getName(), 2);
+                                    DebugWrite("Player " + Inviter.getInviter() + " has invited " + Invitee + " to join Squad " + InviterSquad.getName() + " --> " + Invitee, 2);
                                 }
 
                             }
