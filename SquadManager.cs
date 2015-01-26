@@ -2175,7 +2175,9 @@ This means if you disable a feature or change a setting the chat message will be
 
                         ServerCommand("admin.say", "Moving you into your new Squad [" + SQUAD_NAMES[NewSquadID] + "]", "player", SoldierName);
                         DebugWrite("Moving you into your new Squad [" + squad.getID(0) + "][" + SQUAD_NAMES[NewSquadID] + "] --> " + SoldierName, 2);
+                        ServerCommand("squad.private", squad.getID(0).ToString(), NewSquadID.ToString(), "false");
                         ServerCommand("admin.movePlayer", SoldierName, squad.getID(0).ToString(), NewSquadID.ToString(), "true");
+                        ServerCommand("squad.private", squad.getID(0).ToString(), NewSquadID.ToString(), "true");
 
                         squad.Open();
 
@@ -3723,14 +3725,14 @@ This means if you disable a feature or change a setting the chat message will be
                     {
                         ServerCommand("admin.say", "No such player name matches (" + cmd_match.Groups[i].Value + ")", "player", speaker);
                         DebugWrite("No such player name matches (" + cmd_match.Groups[i].Value + ") --> " + speaker, 2);
-                        continue;
+                        return true;
                     }
                     if (found > 1)
                     {
                         ServerCommand("admin.say", "Multiple players match the target name (" + cmd_match.Groups[i].Value + "), try again!", "player", speaker);
                         DebugWrite("Multiple players match the target name (" + cmd_match.Groups[i].Value + "), try again! --> " + speaker, 2);
                         targets[i - 1] = null;
-                        continue;
+                        return true;
                     }
 
                     playerCount++;
@@ -3776,7 +3778,7 @@ This means if you disable a feature or change a setting the chat message will be
 
         public override void OnGlobalChat(string speaker, string message)
         {
-            if (!enabled || !BuildComplete)
+            if (!enabled)
                 return;
 
             if (OnDenyChat(message, speaker))
@@ -3829,7 +3831,7 @@ This means if you disable a feature or change a setting the chat message will be
         public override void OnSquadChat(string speaker, string message, int teamId, int squadId)
         {
 
-            if (!enabled || !BuildComplete)
+            if (!enabled)
                 return;
 
             if (OnDenyChat(message, speaker))
