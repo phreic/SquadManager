@@ -2168,6 +2168,10 @@ This means if you disable a feature or change a setting the chat message will be
                             squad.setID(1, NewSquadID);
 
                         }
+                        else
+                        {
+                            NewSquadID = squad.getID(1);
+                        }
 
                         ServerCommand("admin.say", "Moving you into your new Squad [" + SQUAD_NAMES[NewSquadID] + "]", "player", SoldierName);
                         DebugWrite("Moving you into your new Squad [" + squad.getID(0) + "][" + SQUAD_NAMES[NewSquadID] + "] --> " + SoldierName, 2);
