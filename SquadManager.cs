@@ -2179,6 +2179,8 @@ This means if you disable a feature or change a setting the chat message will be
                         ServerCommand("admin.movePlayer", SoldierName, squad.getID(0).ToString(), NewSquadID.ToString(), "true");
                         ServerCommand("squad.private", squad.getID(0).ToString(), NewSquadID.ToString(), "true");
 
+                        squad.RemPlayer(SoldierName);
+
                         squad.Open();
 
                         if (squad.SquadLeaderKnown() && SoldierName == squad.GetSquadLeader())
