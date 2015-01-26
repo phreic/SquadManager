@@ -565,7 +565,7 @@ namespace PRoConEvents
                     }
                 }
 
-                for (int i = 0; i < TakenSquads.Length; i++)
+                for (int i = 1; i < TakenSquads.Length; i++)
                 {
                     if (TakenSquads[i] == false)
                         return i;
@@ -2150,6 +2150,7 @@ This means if you disable a feature or change a setting the chat message will be
                         int NewSquadID = 0;
                         if (squad.IsSquadOpen() == false)
                         {
+                            DebugWrite("Searching a new Empty Squad", 2);
                             NewSquadID = squads.FindEmptySquad(squad.getID(0));
                             squad.SetNewSquadID(NewSquadID);
 
