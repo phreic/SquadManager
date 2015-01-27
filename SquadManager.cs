@@ -3183,7 +3183,7 @@ This means if you disable a feature or change a setting the chat message will be
                                 {
                                     Squad OpenedSquad = squads.SearchSquad(teamId, squadId);
                                     if (OpenedSquad == null)
-                                        return;
+                                        continue;
 
                                     if (squad.getMembers().Count + OpenedSquad.getMembers().Count == 5)
                                     {
@@ -3268,7 +3268,7 @@ This means if you disable a feature or change a setting the chat message will be
             if (!InviteCommand)
                 return false;
 
-            if (message.Equals("!deny"))
+            if (message.Equals("!deny") || message.Equals("!abgelehnt"))
             {
 
                 if (!BuildComplete)
@@ -3615,7 +3615,7 @@ This means if you disable a feature or change a setting the chat message will be
             if (!InviteCommand)
                 return false;
 
-            if (message.Equals("!join"))
+            if (message.Equals("!join") || message.Equals("!stattgegeben"))
             {
 
                 if (!BuildComplete)
@@ -3780,7 +3780,7 @@ This means if you disable a feature or change a setting the chat message will be
 
         public override void OnGlobalChat(string speaker, string message)
         {
-            if (!enabled)
+            if (!enabled || speaker == "server")
                 return;
 
             if (OnDenyChat(message, speaker))
@@ -3806,7 +3806,7 @@ This means if you disable a feature or change a setting the chat message will be
         }
         public override void OnTeamChat(string speaker, string message, int teamId)
         {
-            if (!enabled)
+            if (!enabled || speaker == "server")
                 return;
 
             if (OnDenyChat(message, speaker))
@@ -3833,7 +3833,7 @@ This means if you disable a feature or change a setting the chat message will be
         public override void OnSquadChat(string speaker, string message, int teamId, int squadId)
         {
 
-            if (!enabled)
+            if (!enabled || speaker == "server")
                 return;
 
             if (OnDenyChat(message, speaker))
