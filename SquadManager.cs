@@ -2038,7 +2038,7 @@ Level 4: Plugin Internal Information <br>
 
             ServerCommand("player.isAlive", target.SoldierName);
 
-            ServerCommand("admin.say", "Your invite has been successfully sent to " + target.SoldierName + " Player will see this message on next death.", "player", speaker);
+            ServerCommand("admin.say", "Your invite has been successfully sent to " + target.SoldierName + " will see this message on next death.", "player", speaker);
             DebugWrite("Your invite has been successfully sent to " + target.SoldierName + " --> " + speaker, 2);
 
 
