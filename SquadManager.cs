@@ -940,7 +940,7 @@ namespace PRoConEvents
         }
         public string GetPluginVersion()
         {
-            return "0.9.9.1";
+            return "0.9.9.2";
         }
         public string GetPluginAuthor()
         {
@@ -1076,6 +1076,15 @@ This means if you disable a feature or change a setting the chat message will be
 </p>
 </blockquote> 
 
+<blockquote> 
+<p><b>Debug Options</b><br>  
+Level 1: Round Information<br> 
+Level 2: Admin Say/Yell Messages <br> 
+Level 3: Squad Information <br> 
+Level 4: Plugin Internal Information <br> 
+</p>
+</blockquote> 
+
 <h2><p>Commands</p></h2>
 <blockquote> 
 <p><b>!lead </b> 
@@ -1137,7 +1146,7 @@ This means if you disable a feature or change a setting the chat message will be
 <blockquote><h4>0.9.8.1 (11-Jan-2015)</h4><br>  
 <li>Plugin Approval release</li><br/>
 </blockquote>
-<blockquote><h4>0.9.9.1 (26-Jan-2015)</h4><br>  
+<blockquote><h4>0.9.9.2 (27-Jan-2015)</h4><br>  
 <li>Regroup command ready for testing</li><br/>
 <li>Admins can use !lead command anytime (if enabled)</li><br/>
 <li>Bug Fixes</li><br/>
