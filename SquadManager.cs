@@ -1529,61 +1529,76 @@ Level 4: Plugin Internal Information <br>
                 TeamCount = 2;
 
             int count;
-            List<List<int>>[,] SquadIDs = new List<List<int>>[TeamCount, 5];  // Squads per Team sorted by MembersCount with Lists of merged Squad IDs. 
+            List<List<int>>[,] SquadIDs = new List<List<int>>[TeamCount, 6];  // Squads per Team sorted by MembersCount with Lists of merged Squad IDs. 
             List<int> Ids;
             List<int> IDsA, IDsB;
 
             foreach (Squad squad in squads.getSquads())
             { 
                 count = squad.getMembers().Count;
-                if (count > 0 && count < 5 && squad.getID(1) > 0)
+                if (count > 0 && count < 5 && squad.getID(1) > 0 && squad.getID(0) > 0)
                 {
-                    if (SquadIDs[squad.getID(0) - 1, count - 1] == null)
-                        SquadIDs[squad.getID(0) - 1, count - 1] = new List<List<int>>();
+                    if (SquadIDs[squad.getID(0) - 1, count] == null)
+                        SquadIDs[squad.getID(0) - 1, count] = new List<List<int>>();
 
                     Ids = new List<int>();
                     Ids.Add(squad.getID(1));
-                    SquadIDs[squad.getID(0) - 1, count - 1].Add(Ids);
-                    DebugWrite("Found partly filled Squads: [" + squad.getID(0) + "][" + SQUAD_NAMES[squad.getID(1)] + "] Members Count: " + count, 2);
+                    SquadIDs[squad.getID(0) - 1, count].Add(Ids);
+                    DebugWrite("Found partly filled Squad: [" + squad.getID(0) + "][" + SQUAD_NAMES[squad.getID(1)] + "] Member Count: " + count, 2);
                 }
 
             }
 
             for (int i = 0; i < TeamCount; i++)
             {
-                for (int j = 0; j < 4; j++)
+                DebugWrite("-----------------------------  Checking Team [" + (i + 1) + "] for mergeable Squads ----------------------------- ", 2);
+                for (int j = 0; j < 4; j++) // start with smallest squad
                 {
                     if (SquadIDs[i, j] == null)
                         continue;
                     if (SquadIDs[i, j].Count == 0)
                         continue;
-                 
-                    for(int k = 4; k >= 0; k--) 
+
+                    //DebugWrite("Group of Squads A: " + "Member Count " + j + " TeamID: [" + (i + 1) + "]" , 2);
+
+                    for (int k = 4; k >= 0; k--) // start with biggest squad
                      {
-                         DebugWrite("A k " + k + " j: " + j + " i: " + i, 2);
                         if (SquadIDs[i, k] == null)
                              continue;
                         if (SquadIDs[i, k].Count == 0)
                             continue;
 
-                         if(j + k <= 4) 
+                        //DebugWrite("Group of Squads B: " + "Member Count " + j + " TeamID: [" + (i + 1) + "]", 2);
+
+                         if(j + k <= 5) 
                          {
-                            DebugWrite("B k " + k + " j: " + j + " i: " + i, 2);
                             IDsA = SquadIDs[i, k][0];
                             IDsB = SquadIDs[i, j][0];
+
+                            if (IDsA == IDsB)
+                                continue;
+
+                            //DebugWrite("Merged Group of SquadsA + SquadsB: " + "Member Count " + (j + k), 2);
+
                             Ids = new List<int>();
+
+                            string debugmessageA = String.Empty;
+                            string debugmessageB = String.Empty;
 
                             foreach (int entry in IDsA)
                             {
+                                debugmessageA += SQUAD_NAMES[entry] + " ";
                                 Ids.Add(entry);
                             }
 
                             foreach (int entry in IDsB)
                             {
+                                debugmessageB += SQUAD_NAMES[entry] + " ";
                                 Ids.Add(entry);
                             }
 
-                            DebugWrite("C k " + k + " j: " + j + " i: " + i, 2);
+                            DebugWrite("Merging Squads of Group A:" + debugmessageA + " and Squads of Group B: " + debugmessageB + " in Team [" + (i + 1) + "]", 2);
+
                             if (SquadIDs[i, j + k] == null)
                                 SquadIDs[i, j + k] = new List<List<int>>();
                             SquadIDs[i, j + k].Add(Ids);
@@ -1594,13 +1609,15 @@ Level 4: Plugin Internal Information <br>
                 }
             }
 
+            DebugWrite("-----------------------------  Checking completed ----------------------------- ", 2);
+
             for (int i = 0; i < TeamCount; i++)
             {
                 for (int j = 0; j < 5; j++)
                 {
                     if (SquadIDs[i, j] == null)
                         continue;
-                    if (SquadIDs[i, j].Count == 0)
+                    if (SquadIDs[i, j].Count < 2)
                         continue;
 
                     foreach (List<int> list in SquadIDs[i, j]) 
@@ -1608,9 +1625,9 @@ Level 4: Plugin Internal Information <br>
                         string msg = String.Empty;
                         foreach (int entry in list)
                         {
-                            msg = msg + ", " + entry.ToString();
+                            msg = msg + ", " + SQUAD_NAMES[entry];
                         }
-                        DebugWrite("Merging Squads in Team " + i + " : " + msg, 2);
+                        DebugWrite("Merging Squads in Team " + (i + 1) + " : " + msg, 2);
                      }
                 }
 
