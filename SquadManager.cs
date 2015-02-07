@@ -1529,6 +1529,7 @@ Level 4: Plugin Internal Information <br>
                 TeamCount = 2;
 
             int count;
+            int pos;
             List<List<int>>[,] SquadIDs = new List<List<int>>[TeamCount, 6];  // Squads per Team sorted by MembersCount with Lists of merged Squad IDs. 
             List<int> Ids;
             List<int> IDsA, IDsB;
@@ -1572,11 +1573,24 @@ Level 4: Plugin Internal Information <br>
 
                          if(j + k <= 5) 
                          {
-                            IDsA = SquadIDs[i, k][0];
+                            
                             IDsB = SquadIDs[i, j][0];
+                            pos = 0;
 
-                            if (IDsA == IDsB)
-                                continue;
+                            if (j == k)
+                            {
+                                if(SquadIDs[i, k][1] == null)
+                                    continue;
+                                if(SquadIDs[i, k][1].Count == 0)
+                                    continue;
+
+                                IDsA = SquadIDs[i, k][1];
+                                pos = 1;
+                          
+                            }
+                            else
+                                IDsA = SquadIDs[i, k][0];
+
 
                             //DebugWrite("Merged Group of SquadsA + SquadsB: " + "Member Count " + (j + k), 2);
 
@@ -1605,14 +1619,14 @@ Level 4: Plugin Internal Information <br>
                             if (SquadIDs[i, j + k] == null)
                                 SquadIDs[i, j + k] = new List<List<int>>();
                             SquadIDs[i, j + k].Add(Ids);
-                            SquadIDs[i, k].RemoveAt(0);
+                            SquadIDs[i, k].RemoveAt(pos);
                             SquadIDs[i, j].RemoveAt(0);
                          }
                      }
                 }
             }
 
-            DebugWrite("-----------------------------  Checking completed ----------------------------- ", 2);
+            DebugWrite("----------------------------------------  Checking completed ---------------------------------------- ", 2);
 
             for (int i = 0; i < TeamCount; i++)
             {
