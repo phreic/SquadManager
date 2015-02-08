@@ -83,9 +83,10 @@ namespace PRoConEvents
         private int[] CurrentPlayersTeams;
         private List<List<object>> JoinSwitchQueue;
         private List<Squad> SquadChangeOnDeadQueue;
-        public List<String> Messages;
+        private List<String> Messages;
         private int MessageCounter;
         bool JoinSwitchBeforeScramble;
+        private List<List<int>> MergeGroups;
 
         public static String[] SQUAD_NAMES = new String[] { "NONE",
       "Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel",
@@ -363,6 +364,11 @@ namespace PRoConEvents
             public bool Equals(Squad OtherSquad)
             {
                 return this.getID(0).Equals(OtherSquad.getID(0)) && this.getID(1).Equals(OtherSquad.getID(1));
+            }
+
+            public override string ToString()
+            {
+                return "[" + getID(0) + "][" + SQUAD_NAMES[getID(1)] + "]";
             }
         }
         public class VirtualSquad : Squad
@@ -828,6 +834,7 @@ namespace PRoConEvents
             CurrentPlayersTeams = new int[4];
             MessageCounter = 0;
             JoinSwitchBeforeScramble = false;
+            MergeGroups = new List<List<int>>();
 
             bTimer = new System.Timers.Timer();
             bTimer.Interval = 27000;
@@ -1196,7 +1203,7 @@ Level 4: Plugin Internal Information <br>
             lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow only regroups within a Squad", RegroupSquadOnly.GetType(), RegroupSquadOnly));
 
             lstReturn.Add(new CPluginVariable("5 - Miscellaneous|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
-            lstReturn.Add(new CPluginVariable("5 - Miscellaneous|Merge Squads", MergeSquads.GetType(), MergeSquads));
+            lstReturn.Add(new CPluginVariable("5 - Miscellaneous|Merge partially filled Squads between Rounds", MergeSquads.GetType(), MergeSquads));
 
             lstReturn.Add(new CPluginVariable("6 - Dynamic Messages|Send messages how to use this plugin", WriteMessages.GetType(), WriteMessages));
             lstReturn.Add(new CPluginVariable("6 - Dynamic Messages|Interval (seconds)", Interval.GetType(), Interval));
@@ -1388,7 +1395,7 @@ Level 4: Plugin Internal Information <br>
                 bool.TryParse(strValue, out tmp);
                 UnlockSquads = tmp;
             }
-            else if (Regex.Match(strVariable, @"Merge Squads").Success)
+            else if (Regex.Match(strVariable, @"Merge partially filled Squads between Rounds").Success)
             {
                 bool tmp = true;
                 bool.TryParse(strValue, out tmp);
@@ -1535,24 +1542,31 @@ Level 4: Plugin Internal Information <br>
             List<int> IDsA, IDsB;
 
             foreach (Squad squad in squads.getSquads())
-            { 
+            {
+                int TeamID  = squad.getID(0);
+                int SquadID = squad.getID(1);
+
+                if (TeamID < 1 || SquadID < 1)
+                    continue;
+
                 count = squad.getMembers().Count;
-                if (count > 0 && count < 5 && squad.getID(1) > 0 && squad.getID(0) > 0)
+
+                if (count > 0 && count < 5 )
                 {
-                    if (SquadIDs[squad.getID(0) - 1, count] == null)
-                        SquadIDs[squad.getID(0) - 1, count] = new List<List<int>>();
+                    if (SquadIDs[TeamID - 1, count] == null)
+                        SquadIDs[TeamID - 1, count] = new List<List<int>>();
 
                     Ids = new List<int>();
-                    Ids.Add(squad.getID(1));
-                    SquadIDs[squad.getID(0) - 1, count].Add(Ids);
-                    DebugWrite("Found partly filled Squad: [" + squad.getID(0) + "][" + SQUAD_NAMES[squad.getID(1)] + "] Member Count: " + count, 2);
+                    Ids.Add(SquadID);
+                    SquadIDs[TeamID - 1, count].Add(Ids);
+                    DebugWrite("Found partly filled Squad: [" + TeamID + "][" + SQUAD_NAMES[SquadID] + "] Member Count: " + count, 2);
                 }
 
             }
 
             for (int i = 0; i < TeamCount; i++)
             {
-                DebugWrite("-----------------------------  Checking Team [" + (i + 1) + "] for mergeable Squads ----------------------------- ", 2);
+                DebugWrite("----------------------------- Checking Team [" + (i + 1) + "] for mergeable Squads ----------------------------- ", 2);
                 for (int j = 1; j < 5; j++) // start with smallest squad
                 {
                     if (SquadIDs[i, j] == null)
@@ -1560,20 +1574,18 @@ Level 4: Plugin Internal Information <br>
                     if (SquadIDs[i, j].Count == 0)
                         continue;
 
-                    //DebugWrite("Group of Squads A: " + "Member Count " + j + " TeamID: [" + (i + 1) + "]" , 2);
-
-                    for (int k = 4; k > 0; k--) // start with biggest squad
+                    for (int k = 4; k > 0; k--) // start with biggest squad with empty slot(s)
                      {
                         if (SquadIDs[i, k] == null)
                              continue;
                         if (SquadIDs[i, k].Count == 0)
                             continue;
 
-                        //DebugWrite("Group of Squads B: " + "Member Count " + j + " TeamID: [" + (i + 1) + "]", 2);
-
                          if(j + k <= 5) 
                          {
-                            
+                             if (SquadIDs[i, j][0] == null)
+                                 break;
+
                             IDsB = SquadIDs[i, j][0];
                             pos = 0;
 
@@ -1581,7 +1593,7 @@ Level 4: Plugin Internal Information <br>
                             {
                                 if(SquadIDs[i, k][1] == null)
                                     continue;
-                                if(SquadIDs[i, k][1].Count == 0)
+                                if (SquadIDs[i, k][1].Count == 0)
                                     continue;
 
                                 IDsA = SquadIDs[i, k][1];
@@ -1591,9 +1603,10 @@ Level 4: Plugin Internal Information <br>
                             else
                                 IDsA = SquadIDs[i, k][0];
 
-
-                            //DebugWrite("Merged Group of SquadsA + SquadsB: " + "Member Count " + (j + k), 2);
-
+                            DebugWrite("Group of Squads A: " + "Member Count " + j + " TeamID: [" + (i + 1) + "]", 2);
+                            DebugWrite("Group of Squads B: " + "Member Count " + j + " TeamID: [" + (i + 1) + "]", 2);
+                            DebugWrite("Found matching Squads: [j,k]=[" + j + "," + k + "]", 2);
+                            
                             Ids = new List<int>();
 
                             string debugmessageA = String.Empty;
@@ -1621,12 +1634,13 @@ Level 4: Plugin Internal Information <br>
                             SquadIDs[i, j + k].Add(Ids);
                             SquadIDs[i, k].RemoveAt(pos);
                             SquadIDs[i, j].RemoveAt(0);
+                            break;
                          }
                      }
                 }
             }
 
-            DebugWrite("----------------------------------------  Checking completed ---------------------------------------- ", 2);
+            DebugWrite("---------------------------------------- Checking completed --------------------------------------- ", 2);
 
             for (int i = 0; i < TeamCount; i++)
             {
@@ -1636,51 +1650,61 @@ Level 4: Plugin Internal Information <br>
                         continue;
                     if (SquadIDs[i, j].Count == 0)
                         continue;
+                    DebugWrite("A", 2);
 
                     foreach (List<int> list in SquadIDs[i, j]) 
                      {
                          if (list.Count < 2)
                              continue;
 
+                        DebugWrite("B", 2);
+                        List<string> playersMerge = new List<string>();
+                        int[] LargestSquadID = new int[] { -1, -1 };
+                        int LargestSquadSize = -1;
+
                         string msg = String.Empty;
+
                         foreach (int entry in list)
                         {
+                            DebugWrite("C", 2);
                             msg += "^b" + SQUAD_NAMES[entry] + "^n, ";
+
+                            Squad PlayersSquad = squads.SearchSquad(i+1, entry);
+                            DebugWrite("D", 2);
+                            
+                            if (PlayersSquad != null)
+                            {
+                                DebugWrite("E", 2);
+                                DebugWrite(PlayersSquad.ToString(), 2);
+
+                                if (PlayersSquad.getMembers().Count > LargestSquadSize)
+                                {
+                                    LargestSquadSize    = PlayersSquad.getMembers().Count;
+                                    LargestSquadID[0]   = PlayersSquad.getID(0);
+                                    LargestSquadID[1]   = PlayersSquad.getID(1);
+                                }
+
+
+                                foreach (string player in PlayersSquad.getMembers())
+                                {
+                                    if (PlayersSquad.getID(1) != entry)
+                                        playersMerge.Add(player);
+                                }
+                            }
                         }
 
                         msg = msg.Trim(new Char[] { ' ', ',' });
                         DebugWrite("Merging Squads in Team " + (i + 1) + " : " + msg, 2);
+                        foreach (string player in playersMerge)
+                        {
+                            DebugWrite("Moving " + player + " into Squad [" + LargestSquadID[0].ToString() + "][" + SQUAD_NAMES[LargestSquadID[1]], 2);
+                            //ServerCommand("admin.movePlayer", player, LargestSquadID[0].ToString(), LargestSquadID[1].ToString(), "true");
+                        }
+
                      }
                 }
 
             }
-
-            
-
-
-
-
-            /*List<int[]> pair = new List<int[]>();
-
-            / Perfect pairs
-            foreach (Squad squadA in squads.getSquads())
-            {
-                foreach (Squad squadB in squads.getSquads())
-                {
-                    if(squadB.getID(0) != squadA.getID(0) || squadB.getID(1) == squadB.getID(1))
-                        continue;
-
-                    if (squadA.getMembers().Count + squadB.getMembers().Count <= 5)
-                    {
-                        int[] ID = new int[] { squadA.getID(1), squadB.getID(1) };
-                        pair.Add(ID);
-                        break;
-                    }
-
-                }
-            }*/
-
-
         }
         public void UnlockAllSquads()
         {
@@ -2082,10 +2106,10 @@ Level 4: Plugin Internal Information <br>
             WaitingSquadLeaders = true;
             BuildComplete = false;
             BuildCompleteMessageSent = false;
-            squads = null;
-            Votes = null;
-            Votes = new List<Vote>();
             squads = new Squads();
+            Votes = new List<Vote>();
+            JoinSwitchQueue.Clear();
+
             SquadSwitchPossible = true;
             PlayersList = null;
             ServerCommand("listPlayers", "all");
