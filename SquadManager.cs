@@ -1907,10 +1907,10 @@ Level 4: Plugin Internal Information <br>
             WaitingSquadLeaders = true;
             BuildComplete = false;
             BuildCompleteMessageSent = false;
-            squads = null;
-            Votes = null;
-            Votes = new List<Vote>();
             squads = new Squads();
+            Votes = new List<Vote>();
+            JoinSwitchQueue.Clear();
+
             SquadSwitchPossible = true;
             PlayersList = null;
             ServerCommand("listPlayers", "all");
