@@ -1017,7 +1017,7 @@ You can also choose whether the warnings should be shown as yell message or not.
 <blockquote> 
 <p><b>4.1 - Squad Command Lead</b><br> 
 Enable this option to give players with <b>Reserved Slot List</b> or VIPs (<b>Squad Leader List</b>) the possibility to take over the Squad Lead with <b>!lead</b> command in chat.<br>
-You can add VIPs to the <b>Squad Leader List</b>. The Squad Leader List has a higher priority than the Reserved Slot List<br>
+You can add VIPs to the <b>Squad Leader List</b> by name <b>(Squad Leader List: Playernames</b>) or by Clan Tag (<b>Squad Leader List: Clan Tags</b>). The Squad Leader List has a higher priority than the Reserved Slot List<br>
 Additional you can allow every admin to use !lead command, regardless whether the current Squad Leader is an Admin, VIP, or a player with Reserved Slot.<br>
 Admins need the right to move players between Squads and Teams to do that.<br>
 
