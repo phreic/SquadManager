@@ -102,6 +102,7 @@ namespace PRoConEvents
         private bool SendWarnings = false;
         private int NoOrdersWarnings = 3;
         private List<String> WhiteList;
+        private List<String> ClanWhiteList;
         private bool UseReservedList;
         private List<String> ReservedSlots;
         private bool VoteDismiss;
@@ -862,6 +863,7 @@ namespace PRoConEvents
             SendWarnings = false;
             NoOrdersWarnings = 3;
             WhiteList = new List<String>();
+            ClanWhiteList = new List<String>();
             UseReservedList = false;
             UseAdminList = true;
             VoteDismiss = false;
@@ -1184,7 +1186,8 @@ Level 4: Plugin Internal Information <br>
             lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Use Reserved Slot List", UseReservedList.GetType(), UseReservedList));
             lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Use Squad Leader List", UseLeaderList.GetType(), UseLeaderList));
             lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Allow Admins to use this command anytime", UseAdminList.GetType(), UseAdminList));
-            lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Squad Leaders List", typeof(string[]), WhiteList.ToArray()));
+            lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Squad Leaders List: Playernames", typeof(string[]), WhiteList.ToArray()));
+            lstReturn.Add(new CPluginVariable("4.1 - Squad Command Lead|Squad Leaders List: Clantags", typeof(string[]), ClanWhiteList.ToArray()));
 
             lstReturn.Add(new CPluginVariable("4.2 - Squad Command Vote|Allow Vote new Squad Leader [!newleader]", VoteDismiss.GetType(), VoteDismiss));
             lstReturn.Add(new CPluginVariable("4.2 - Squad Command Vote|Votes needed", VotesNeededDismiss.GetType(), VotesNeededDismiss));
@@ -1292,9 +1295,13 @@ Level 4: Plugin Internal Information <br>
                 bool.TryParse(strValue, out tmp);
                 UseLeaderList = tmp;
             }
-            else if (Regex.Match(strVariable, @"Squad Leaders List").Success)
+            else if (Regex.Match(strVariable, @"Squad Leaders List: Playernames").Success)
             {
                 WhiteList = new List<string>(CPluginVariable.DecodeStringArray(strValue));
+            }
+            else if (Regex.Match(strVariable, @"Squad Leaders List: Playernames").Success)
+            {
+                ClanWhiteList = new List<string>(CPluginVariable.DecodeStringArray(strValue));
             }
             else if (Regex.Match(strVariable, @"Use Reserved Slot List").Success)
             {
@@ -3556,6 +3563,12 @@ Level 4: Plugin Internal Information <br>
                     return true;
                 }
 
+                if(PlayersList == null)  
+                {
+                    DebugWrite("^b" + speaker + "^n has requested leadership. List of Players has not been received yet.", 2);
+                    return true;
+                }
+
 
                 if (squad.getID(1) < 1)
                     return true;
@@ -3582,12 +3595,31 @@ Level 4: Plugin Internal Information <br>
 
                 }
 
-                if (UseLeaderList)
-                    if (Permission == false && WhiteList.Contains(speaker) && !WhiteList.Contains(squad.GetSquadLeader()))
+                if (UseLeaderList)  
+                {
+
+                    String Leader = squad.GetSquadLeader();
+                    String LeaderTag = String.Empty;
+                    String SpeakerTag = String.Empty;
+
+                    foreach(CPlayerInfo player in PlayersList) 
+                    {
+                        if(player.SoldierName == Leader)
+                            LeaderTag = player.ClanTag;
+                        if(player.SoldierName == speaker)
+                            SpeakerTag = player.ClanTag;
+                        if(SpeakerTag != String.Empty && LeaderTag != String.Empty)
+                            break;
+                    }
+                   
+
+                    if (Permission == false && ( WhiteList.Contains(speaker) || ClanWhiteList.Contains(SpeakerTag) ) && (!WhiteList.Contains(squad.GetSquadLeader()) && !ClanWhiteList.Contains(LeaderTag)) )
                     {
                         DebugWrite("^b" + speaker + "^n ask for lead of Squad ^b[" + squad.getID(0) + "][" + squad.getName() + "]^n. Player is in Squad List.", 2);
                         Permission = true;
                     }
+                }
+
                 if (UseReservedList)
                     if (Permission == false && ReservedSlots.Contains(speaker) && !ReservedSlots.Contains(squad.GetSquadLeader()))
                     {
