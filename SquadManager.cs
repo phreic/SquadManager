@@ -1547,11 +1547,12 @@ Level 4: Plugin Internal Information <br>
             List<List<int>>[,] SquadIDs = new List<List<int>>[TeamCount, 6];  // Squads per Team sorted by MembersCount with Lists of merged Squad IDs. 
             List<int> Ids;
             List<int> IDsA, IDsB;
+            int TeamID, SquadID;
 
             foreach (Squad squad in squads.getSquads())
             {
-                int TeamID  = squad.getID(0);
-                int SquadID = squad.getID(1);
+                TeamID  = squad.getID(0);
+                SquadID = squad.getID(1);
 
                 if (TeamID < 1 || SquadID < 1)
                     continue;
@@ -1581,35 +1582,45 @@ Level 4: Plugin Internal Information <br>
                     if (SquadIDs[i, j].Count == 0)
                         continue;
 
+                    if (SquadIDs[i, j][0] == null)
+                        continue;
+                    if (SquadIDs[i, j][0].Count == 0)
+                        continue;
+                    
                     for (int k = 4; k > 0; k--) // start with biggest squad with empty slot(s)
                      {
+                        DebugWrite("a", 2);
                         if (SquadIDs[i, k] == null)
-                             continue;
+                            continue;
                         if (SquadIDs[i, k].Count == 0)
                             continue;
-
+                        DebugWrite("b", 2);
                          if(j + k <= 5) 
                          {
-                             if (SquadIDs[i, j][0] == null)
-                                 break;
-
+                             if (SquadIDs[i, k][0] == null)
+                                 continue;
+                             if (SquadIDs[i, k][0].Count == 0)
+                                 continue;
+                            DebugWrite("c", 2);
                             IDsB = SquadIDs[i, j][0];
                             pos = 0;
+                            DebugWrite("d", 2);
 
                             if (j == k)
                             {
-                                if(SquadIDs[i, k][1] == null)
+                                DebugWrite("e", 2);
+                                if (SquadIDs[i, k][1] == null)
                                     continue;
                                 if (SquadIDs[i, k][1].Count == 0)
                                     continue;
-
+                                DebugWrite("f", 2);
                                 IDsA = SquadIDs[i, k][1];
                                 pos = 1;
                           
                             }
                             else
                                 IDsA = SquadIDs[i, k][0];
-
+                            DebugWrite("g", 2);
                             DebugWrite("Group of Squads A: " + "Member Count " + j + " TeamID: [" + (i + 1) + "]", 2);
                             DebugWrite("Group of Squads B: " + "Member Count " + j + " TeamID: [" + (i + 1) + "]", 2);
                             DebugWrite("Found matching Squads: [j,k]=[" + j + "," + k + "]", 2);
@@ -1644,6 +1655,8 @@ Level 4: Plugin Internal Information <br>
                             break;
                          }
                      }
+
+                    DebugWrite("h", 2);
                 }
             }
 
@@ -1712,6 +1725,8 @@ Level 4: Plugin Internal Information <br>
                 }
 
             }
+
+            DebugWrite("Merging complete!", 2);
         }
         public void UnlockAllSquads()
         {
