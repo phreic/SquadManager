@@ -131,6 +131,7 @@ namespace PRoConEvents
         private bool RegroupSquadOnly;
         private bool MergeSquads;
         private bool UseAdminList;
+        private string DebugCommands;
 
         public class Squad
         {
@@ -891,6 +892,7 @@ namespace PRoConEvents
             Regroup = true;
             RegroupSquadOnly = false;
             MergeSquads = true;
+            DebugCommands = String.Empty;
 
 
 
@@ -1214,6 +1216,7 @@ Level 4: Plugin Internal Information <br>
             lstReturn.Add(new CPluginVariable("6 - Dynamic Messages|Interval (seconds)", Interval.GetType(), Interval));
 
             lstReturn.Add(new CPluginVariable("Debug Options|Debug level", fDebugLevel.GetType(), fDebugLevel));
+            lstReturn.Add(new CPluginVariable("Debug Options|Use Debug Commands (Don't use this if you don't need it)", DebugCommands.GetType(), DebugCommands));
 
             return lstReturn;
 
@@ -1430,7 +1433,15 @@ Level 4: Plugin Internal Information <br>
                 int.TryParse(strValue, out tmp);
                 fDebugLevel = tmp;
             }
+            else if (Regex.Match(strVariable, @"Use Debug Commands \(Don't use this if you don't need it\)").Success) 
+            {
+                ExecuteDebugCommands(strValue);
+            }
+
+            
+
         }
+
         public void OnPluginLoaded(string strHostName, string strPort, string strPRoConVersion)
         {
             this.RegisterEvents(this.GetType().Name, "OnVersion", "OnServerInfo", "OnResponseError", "OnListPlayers", "OnPlayerJoin", "OnPlayerLeft", "OnPlayerKilled", "OnPlayerSpawned", "OnGlobalChat", "OnTeamChat", "OnSquadChat", "OnRoundOverPlayers", "OnLevelLoaded", "OnPlayerSquadChange", "OnPlayerIdleDuration", "OnSquadLeader", "OnReservedSlotsList", "OnPlayerIsAlive", "OnPlayerMovedByAdmin", "OnPlayerTeamChange");
@@ -1524,6 +1535,21 @@ Level 4: Plugin Internal Information <br>
             text = Regex.Replace(text, @"\\n", "\n");
             text = Regex.Replace(text, @"\\t", "\t");
             return text;
+        }
+        public void ExecuteDebugCommands(String command)
+        {
+            if (Regex.Match(command, @"start").Success)
+            {
+                started = false;
+                SquadSwitchPossible = true;
+                DebugWrite("Round is currently running.", 1);
+                ServerCommand("listPlayers", "all");
+
+                PluginIntervalTimer.Start();
+
+                return;
+            }
+
         }
         public List<String> StoreCurrentSquadsLeaders()
         {
@@ -4096,14 +4122,8 @@ Level 4: Plugin Internal Information <br>
 
         public override void OnGlobalChat(string speaker, string message)
         {
-            if (!enabled || speaker == "server")
+            if (!enabled || speaker == "Server")
                 return;
-
-            if (!BuildComplete)
-            {
-                NotReadyMessage(speaker);
-                return;
-            }
 
             if (OnDenyChat(message, speaker))
                 return;
@@ -4130,14 +4150,8 @@ Level 4: Plugin Internal Information <br>
         }
         public override void OnTeamChat(string speaker, string message, int teamId)
         {
-            if (!enabled || speaker == "server")
+            if (!enabled || speaker == "Server")
                 return;
-
-            if (!BuildComplete)
-            {
-                NotReadyMessage(speaker);
-                return;
-            }
 
             if (OnDenyChat(message, speaker))
                 return;
@@ -4164,14 +4178,8 @@ Level 4: Plugin Internal Information <br>
         }
         public override void OnSquadChat(string speaker, string message, int teamId, int squadId)
         {
-            if (!enabled || speaker == "server")
+            if (!enabled || speaker == "Server")
                 return;
-
-            if (!BuildComplete)
-            {
-                NotReadyMessage(speaker);
-                return;
-            }
 
             if (OnDenyChat(message, speaker))
                 return;
