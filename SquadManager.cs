@@ -1630,7 +1630,6 @@ Level 4: Plugin Internal Information <br>
 
                             IDsB = SquadIDs[i, j].ElementAt(0);
                             pos = 0;
-                            DebugWrite("d", 2);
 
                             if (j == k)
                             {
@@ -1678,8 +1677,6 @@ Level 4: Plugin Internal Information <br>
                             break;
                          }
                      }
-
-                    DebugWrite("h", 2);
                 }
             }
 
