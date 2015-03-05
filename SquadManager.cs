@@ -2263,7 +2263,7 @@ Level 4: Plugin Internal Information <br>
             ServerCommand("player.isAlive", target.SoldierName);
 
             ServerCommand("admin.say", "Your invite has been successfully sent to " + target.SoldierName + ".", "player", speaker);
-            //ServerCommand("admin.say", StripModifiers(E("Player " + speaker +" has invited you to join Squad " + SpeakerSquad + ". Type !join to accept.\n THIS WILL KILL YOU IMMEDIATELY")), "player", target.SoldierName);
+            ServerCommand("admin.say", StripModifiers(E("Player " + speaker +" has invited you to join Squad " + SpeakerSquad + ". Type !join to accept.\n THIS WILL KILL YOU IMMEDIATELY")), "player", target.SoldierName);
             DebugWrite("Your invite has been successfully sent to " + target.SoldierName + " --> " + speaker, 2);
 
 
@@ -3558,6 +3558,91 @@ Level 4: Plugin Internal Information <br>
 
             return false;
         }
+        public bool OnMoveLeadChat(string message, string speaker)
+        {
+
+            if (!MoveLead)
+                return false;
+
+            Match cmd1 = Regex.Match(message, @"[!@#]givelead\s+([^\s]+)", RegexOptions.IgnoreCase);
+            Match cmd2 = Regex.Match(message, @"[!@#]lead\s+([^\s]+)", RegexOptions.IgnoreCase);
+            Match cmd; 
+           
+            if (cmd1.Success)
+                cmd = cmd1;
+            else if(cmd2.Success)
+                cmd = cmd2;
+            else
+                return false;
+            
+
+            if (!BuildComplete)
+            {
+                NotReadyMessage(speaker);
+                return true;
+            }
+
+            if (PlayersList == null || !BuildComplete)
+                return true;
+
+            Squad SpeakerSquad = squads.SearchSquad(speaker);
+
+            if (SpeakerSquad == null)
+            {
+                ServerCommand("admin.say", "Only Squad Leaders can give someone else Squad Lead.", "player", speaker);
+                DebugWrite("Only Squad Leaders can give someone else Squad Lead. --> " + speaker, 2);
+                return true;
+            }
+
+            if (SpeakerSquad.GetSquadLeader() != speaker)
+            {
+                ServerCommand("admin.say", "Only Squad Leaders can give someone else Squad Lead.", "player", speaker);
+                DebugWrite("Only Squad Leaders can give someone else Squad Lead. -->" + speaker, 2);
+                return true;
+            }
+
+            int found = 0;
+            String name = cmd.Groups[1].Value;
+            String target = null;
+            foreach (String p in SpeakerSquad.getMembers())
+            {
+                if (p == null)
+                    continue;
+
+                if (Regex.Match(p, name, RegexOptions.IgnoreCase).Success)
+                {
+                    ++found;
+                    target = p;
+                }
+            }
+
+            if (found == 0)
+            {
+                ServerCommand("admin.say", "No such player name matches (" + name + ")", "player", speaker);
+                DebugWrite("No such player name matches (" + name + ") --> " + speaker, 2);
+                return true;
+            }
+            if (found > 1)
+            {
+                ServerCommand("admin.say", "Multiple players match the target name (" + name + "), try again!", "player", speaker);
+                DebugWrite("Multiple players match the target name (" + name + "), try again! --> " + speaker, 2);
+                return true;
+            }
+            if (target == speaker)
+            {
+                ServerCommand("admin.say", "You are already Squad Leader", "player", speaker);
+                DebugWrite("You are already Squad Leader. player -->" + speaker, 2);
+                return true;
+            }
+
+
+            DebugWrite("Gave Squad Lead of Team/Squad ^b[" + SpeakerSquad.getID(0) + "][" + SpeakerSquad.getName() + "]^n to " + target, 2);
+            ServerCommand("admin.say", "You gave your Squad Lead to " + target, "player", speaker);
+            ServerCommand("admin.say", speaker + " gave you Squad Lead.", "player", target);
+            ServerCommand("squad.leader", SpeakerSquad.getID(0).ToString(), SpeakerSquad.getID(1).ToString(), target);
+
+            return true;
+        }
         public bool OnLeadChat(string message, string speaker)
         {
 
@@ -3779,86 +3864,6 @@ Level 4: Plugin Internal Information <br>
 
             return false;
         }
-        public bool OnMoveLeadChat(string message, string speaker)
-        {
-
-            if (!MoveLead)
-                return false;
-
-            Match cmd = Regex.Match(message, @"[!@#]givelead\s+([^\s]+)", RegexOptions.IgnoreCase);
-            if (cmd.Success)
-            {
-
-                if (!BuildComplete)
-                {
-                    NotReadyMessage(speaker);
-                    return true;
-                }
-
-                if (PlayersList == null || !BuildComplete)
-                    return true;
-
-                Squad SpeakerSquad = squads.SearchSquad(speaker);
-
-                if (SpeakerSquad == null)
-                {
-                    ServerCommand("admin.say", "Only Squad Leaders can give someone else Squad Lead.", "player", speaker);
-                    DebugWrite("Only Squad Leaders can give someone else Squad Lead. --> " + speaker, 2);
-                    return true;
-                }
-
-                if (SpeakerSquad.GetSquadLeader() != speaker)
-                {
-                    ServerCommand("admin.say", "Only Squad Leaders can give someone else Squad Lead.", "player", speaker);
-                    DebugWrite("Only Squad Leaders can give someone else Squad Lead. -->" + speaker, 2);
-                    return true;
-                }
-
-                int found = 0;
-                String name = cmd.Groups[1].Value;
-                String target = null;
-                foreach (String p in SpeakerSquad.getMembers())
-                {
-                    if (p == null)
-                        continue;
-
-                    if (Regex.Match(p, name, RegexOptions.IgnoreCase).Success)
-                    {
-                        ++found;
-                        target = p;
-                    }
-                }
-
-                if (found == 0)
-                {
-                    ServerCommand("admin.say", "No such player name matches (" + name + ")", "player", speaker);
-                    DebugWrite("No such player name matches (" + name + ") --> " + speaker, 2);
-                    return true;
-                }
-                if (found > 1)
-                {
-                    ServerCommand("admin.say", "Multiple players match the target name (" + name + "), try again!", "player", speaker);
-                    DebugWrite("Multiple players match the target name (" + name + "), try again! --> " + speaker, 2);
-                    return true;
-                }
-                if (target == speaker)
-                {
-                    ServerCommand("admin.say", "You are already Squad Leader", "player", speaker);
-                    DebugWrite("You are already Squad Leader. player -->" + speaker, 2);
-                    return true;
-                }
-
-
-                DebugWrite("Gave Squad Lead of Team/Squad ^b[" + SpeakerSquad.getID(0) + "][" + SpeakerSquad.getName() + "]^n to " + target, 2);
-                ServerCommand("admin.say", "You gave your Squad Lead to " + target, "player", speaker);
-                ServerCommand("admin.say", speaker + " gave you Squad Lead.", "player", target);
-                ServerCommand("squad.leader", SpeakerSquad.getID(0).ToString(), SpeakerSquad.getID(1).ToString(), target);
-
-                return true;
-            }
-
-            return false;
-        }
         public bool OnAcceptChat(string message, string speaker)
         {
             if (!VoteDismiss)
@@ -3980,6 +3985,7 @@ Level 4: Plugin Internal Information <br>
             return RegroupCommand(cmd_match, speaker, message, true);
 
         }
+
         public bool RegroupCommand(Match cmd_match, string speaker, string message, bool force)
         {
             if (cmd_match.Success)
@@ -4093,7 +4099,15 @@ Level 4: Plugin Internal Information <br>
             if (!enabled || speaker == "server")
                 return;
 
+            if (!BuildComplete)
+            {
+                NotReadyMessage(speaker);
+                return;
+            }
+
             if (OnDenyChat(message, speaker))
+                return;
+            if (OnMoveLeadChat(message, speaker))
                 return;
             if (OnLeadChat(message, speaker))
                 return;
@@ -4107,9 +4121,9 @@ Level 4: Plugin Internal Information <br>
                 return;
             if (OnInviteChat(message, speaker))
                 return;
-            if (OnMoveLeadChat(message, speaker))
-                return;
             if (OnReGroupChat(message, speaker))
+                return;
+            if (OnForceReGroupChat(message, speaker))
                 return;
 
             return;
@@ -4119,7 +4133,15 @@ Level 4: Plugin Internal Information <br>
             if (!enabled || speaker == "server")
                 return;
 
+            if (!BuildComplete)
+            {
+                NotReadyMessage(speaker);
+                return;
+            }
+
             if (OnDenyChat(message, speaker))
+                return;
+            if (OnMoveLeadChat(message, speaker))
                 return;
             if (OnLeadChat(message, speaker))
                 return;
@@ -4133,44 +4155,43 @@ Level 4: Plugin Internal Information <br>
                 return;
             if (OnInviteChat(message, speaker))
                 return;
-            if (OnMoveLeadChat(message, speaker))
-                return;
             if (OnReGroupChat(message, speaker))
+                return;
+            if (OnForceReGroupChat(message, speaker))
                 return;
 
             return;
         }
         public override void OnSquadChat(string speaker, string message, int teamId, int squadId)
         {
-
             if (!enabled || speaker == "server")
                 return;
 
+            if (!BuildComplete)
+            {
+                NotReadyMessage(speaker);
+                return;
+            }
+
             if (OnDenyChat(message, speaker))
                 return;
-
-            if (OnLeadChat(message, speaker))
-                return;
-
-            if (OnUnLeadChat(message, speaker))
-                return;
-
-            if (NewLeaderChat(message, speaker))
-                return;
-
-            if (OnAcceptChat(message, speaker))
-                return;
-
-            if (OnJoinChat(message, speaker))
-                return;
-
-            if (OnInviteChat(message, speaker))
-                return;
-
             if (OnMoveLeadChat(message, speaker))
                 return;
-
+            if (OnLeadChat(message, speaker))
+                return;
+            if (OnUnLeadChat(message, speaker))
+                return;
+            if (NewLeaderChat(message, speaker))
+                return;
+            if (OnAcceptChat(message, speaker))
+                return;
+            if (OnJoinChat(message, speaker))
+                return;
+            if (OnInviteChat(message, speaker))
+                return;
             if (OnReGroupChat(message, speaker))
+                return;
+            if (OnForceReGroupChat(message, speaker))
                 return;
 
             if (message.Equals("ID_CHAT_ATTACK/DEFEND") && RemoveNoOrdersLeader)
@@ -4188,6 +4209,7 @@ Level 4: Plugin Internal Information <br>
 
             return;
         }
+
         public override void OnRoundOverPlayers(List<CPlayerInfo> players)
         {
             PlayersList = players;
