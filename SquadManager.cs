@@ -35,6 +35,8 @@ using System.Timers;
 using System.Diagnostics;
 using System.Reflection;
 
+using System.Linq;
+
 using PRoCon.Core;
 using PRoCon.Core.Plugin;
 using PRoCon.Core.Plugin.Commands;
@@ -1544,9 +1546,8 @@ Level 4: Plugin Internal Information <br>
 
             int count;
             int pos;
-            List<List<int>>[,] SquadIDs = new List<List<int>>[TeamCount, 6];  // Squads per Team sorted by MembersCount with Lists of merged Squad IDs. 
-            List<int> Ids;
-            List<int> IDsA, IDsB;
+            List<List<int>>[,] SquadIDs = new List<List<int>>[TeamCount, 6];  // Groups of Squads per Team sorted by MembersCount.
+            List<int> IDsA, IDsB, Ids;
             int TeamID, SquadID;
 
             foreach (Squad squad in squads.getSquads())
@@ -1582,10 +1583,10 @@ Level 4: Plugin Internal Information <br>
                     if (SquadIDs[i, j].Count == 0)
                         continue;
 
-                    if (SquadIDs[i, j][0] == null)
+                    /*if (SquadIDs[i, j].FindLastIndex == 0)
                         continue;
                     if (SquadIDs[i, j][0].Count == 0)
-                        continue;
+                        continue;*/
                     
                     for (int k = 4; k > 0; k--) // start with biggest squad with empty slot(s)
                      {
@@ -1595,23 +1596,25 @@ Level 4: Plugin Internal Information <br>
                         if (SquadIDs[i, k].Count == 0)
                             continue;
                         DebugWrite("b", 2);
-                         if(j + k <= 5) 
+                         
+                        if(j + k <= 5) 
                          {
-                             if (SquadIDs[i, k][0] == null)
+                             if (SquadIDs[i, k].ElementAtOrDefault(0) == null)
                                  continue;
-                             if (SquadIDs[i, k][0].Count == 0)
+                             if (SquadIDs[i, k].ElementAt(0).Count == 0)
                                  continue;
                             DebugWrite("c", 2);
-                            IDsB = SquadIDs[i, j][0];
+
+                            IDsB = SquadIDs[i, j].ElementAt(0);
                             pos = 0;
                             DebugWrite("d", 2);
 
                             if (j == k)
                             {
                                 DebugWrite("e", 2);
-                                if (SquadIDs[i, k][1] == null)
+                                if (SquadIDs[i, k].ElementAtOrDefault(1) == null)
                                     continue;
-                                if (SquadIDs[i, k][1].Count == 0)
+                                if (SquadIDs[i, k].ElementAt(1).Count == 0)
                                     continue;
                                 DebugWrite("f", 2);
                                 IDsA = SquadIDs[i, k][1];
