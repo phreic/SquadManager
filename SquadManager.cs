@@ -1616,12 +1616,10 @@ Level 4: Plugin Internal Information <br>
                     
                     for (int k = 4; k > 0; k--) // start with biggest squad with empty slot(s)
                      {
-                        DebugWrite("a", 2);
                         if (SquadIDs[i, k] == null)
                             continue;
                         if (SquadIDs[i, k].Count == 0)
                             continue;
-                        DebugWrite("b", 2);
                          
                         if(j + k <= 5) 
                          {
@@ -1629,7 +1627,6 @@ Level 4: Plugin Internal Information <br>
                                  continue;
                              if (SquadIDs[i, k].ElementAt(0).Count == 0)
                                  continue;
-                            DebugWrite("c", 2);
 
                             IDsB = SquadIDs[i, j].ElementAt(0);
                             pos = 0;
@@ -1637,19 +1634,16 @@ Level 4: Plugin Internal Information <br>
 
                             if (j == k)
                             {
-                                DebugWrite("e", 2);
                                 if (SquadIDs[i, k].ElementAtOrDefault(1) == null)
                                     continue;
                                 if (SquadIDs[i, k].ElementAt(1).Count == 0)
                                     continue;
-                                DebugWrite("f", 2);
                                 IDsA = SquadIDs[i, k][1];
                                 pos = 1;
                           
                             }
                             else
                                 IDsA = SquadIDs[i, k][0];
-                            DebugWrite("g", 2);
                             DebugWrite("Group of Squads A: " + "Member Count " + j + " TeamID: [" + (i + 1) + "]", 2);
                             DebugWrite("Group of Squads B: " + "Member Count " + j + " TeamID: [" + (i + 1) + "]", 2);
                             DebugWrite("Found matching Squads: [j,k]=[" + j + "," + k + "]", 2);
@@ -1699,14 +1693,11 @@ Level 4: Plugin Internal Information <br>
                         continue;
                     if (SquadIDs[i, j].Count == 0)
                         continue;
-                    DebugWrite("A", 2);
 
                     foreach (List<int> list in SquadIDs[i, j]) 
                      {
                          if (list.Count < 2)
                              continue;
-
-                        DebugWrite("B", 2);
                         List<string> playersMerge = new List<string>();
                         int[] LargestSquadID = new int[] { -1, -1 };
                         int LargestSquadSize = -1;
@@ -1715,7 +1706,6 @@ Level 4: Plugin Internal Information <br>
 
                         foreach (int entry in list)
                         {
-                            DebugWrite("C", 2);
                             msg += "^b" + SQUAD_NAMES[entry] + "^n, ";
 
                             Squad PlayersSquad = squads.SearchSquad(i+1, entry);
@@ -1723,7 +1713,6 @@ Level 4: Plugin Internal Information <br>
                             
                             if (PlayersSquad != null)
                             {
-                                DebugWrite("E", 2);
                                 DebugWrite(PlayersSquad.ToString(), 2);
 
                                 if (PlayersSquad.getMembers().Count > LargestSquadSize)
