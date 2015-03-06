@@ -96,6 +96,8 @@ namespace PRoConEvents
       "Quebec", "Romeo", "Sierra", "Tango", "Uniform", "Victor", "Whiskey", "Xray",
       "Yankee", "Zulu", "Haggard", "Sweetwater", "Preston", "Redford", "Faith", "Celeste", "VIRTUAL"};
 
+        private enum MergeSquadLeader { Random, BiggestSquad, SquadLeaderList };
+
         // Settings
 
         private bool RestoreSquads;
@@ -132,6 +134,8 @@ namespace PRoConEvents
         private bool MergeSquads;
         private bool UseAdminList;
         private string DebugCommands;
+        private MergeSquadLeader ChooseNewLeader;
+        
 
         public class Squad
         {
@@ -893,6 +897,7 @@ namespace PRoConEvents
             RegroupSquadOnly = false;
             MergeSquads = true;
             DebugCommands = String.Empty;
+            ChooseNewLeader = MergeSquadLeader.Random;
 
 
 
@@ -1209,8 +1214,19 @@ Level 4: Plugin Internal Information <br>
             lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow to regroup Squads [!regroup playernameA playernameB ...]", Regroup.GetType(), Regroup));
             lstReturn.Add(new CPluginVariable("4.5 - Squad Command Regroup|Allow only regroups within a Squad", RegroupSquadOnly.GetType(), RegroupSquadOnly));
 
+            lstReturn.Add(new CPluginVariable("4.6 - Merge Squads|Merge partially filled Squads between Rounds", MergeSquads.GetType(), MergeSquads));
+
+            if (MergeSquads)
+            {
+                string var_name = "4.6 - Merge Squads|New Squad Leader of merged Squads";
+                string var_type = "enum." + var_name + "(" + String.Join("|", Enum.GetNames(typeof(MergeSquadLeader))) + ")";
+
+                lstReturn.Add(new CPluginVariable(var_name, var_type, Enum.GetName(typeof(MergeSquadLeader), ChooseNewLeader)));
+
+            }
+
+
             lstReturn.Add(new CPluginVariable("5 - Miscellaneous|Unlock all Squads", UnlockSquads.GetType(), UnlockSquads));
-            lstReturn.Add(new CPluginVariable("5 - Miscellaneous|Merge partially filled Squads between Rounds", MergeSquads.GetType(), MergeSquads));
 
             lstReturn.Add(new CPluginVariable("6 - Dynamic Messages|Send messages how to use this plugin", WriteMessages.GetType(), WriteMessages));
             lstReturn.Add(new CPluginVariable("6 - Dynamic Messages|Interval (seconds)", Interval.GetType(), Interval));
@@ -1304,7 +1320,7 @@ Level 4: Plugin Internal Information <br>
             {
                 WhiteList = new List<string>(CPluginVariable.DecodeStringArray(strValue));
             }
-            else if (Regex.Match(strVariable, @"Squad Leaders List: Playernames").Success)
+            else if (Regex.Match(strVariable, @"Squad Leaders List: Clantags").Success)
             {
                 ClanWhiteList = new List<string>(CPluginVariable.DecodeStringArray(strValue));
             }
@@ -1413,6 +1429,11 @@ Level 4: Plugin Internal Information <br>
                 bool.TryParse(strValue, out tmp);
                 MergeSquads = tmp;
             }
+            else if ((Regex.Match(strVariable, @"New Squad Leader of merged Squads").Success))
+            {
+                MergeSquadLeader tmp = (MergeSquadLeader)Enum.Parse(typeof(MergeSquadLeader), strValue);
+                ChooseNewLeader = tmp;
+            }
             else if (Regex.Match(strVariable, @"Send messages how to use this plugin").Success)
             {
                 bool tmp = false;
@@ -1433,7 +1454,7 @@ Level 4: Plugin Internal Information <br>
                 int.TryParse(strValue, out tmp);
                 fDebugLevel = tmp;
             }
-            else if (Regex.Match(strVariable, @"Use Debug Commands \(Don't use this if you don't need it\)").Success) 
+            else if (Regex.Match(strVariable, @"Use Debug Commands \(Don't use this if you don't need it\)").Success)
             {
                 ExecuteDebugCommands(strValue);
             }
@@ -1555,6 +1576,448 @@ Level 4: Plugin Internal Information <br>
         {
             return squads.getSquadLeaders();
         }
+
+        /*
+         *  TAKEN FROM INSANE LIMITS
+         * 
+        public PlayerInfo fetchStats(PlayerInfo pinfo)
+        {
+            try
+            {
+                bool directFetchEnabled = plugin.getBooleanVarValue("use_direct_fetch");
+                bool cacheEnabled = plugin.IsCacheEnabled(false);
+
+                String player = pinfo.Name;
+                String result = String.Empty;
+                String personaId = String.Empty;
+                Hashtable json = null;
+                //String type = null;
+                //String message = null;
+                StatsException statsEx = null;
+                Hashtable data = null;
+
+                if (!cacheEnabled && !directFetchEnabled)
+                {
+                    throw new StatsException("Unable to fetch stats for " + player + ", cache is disabled and direct fetching is disabled!");
+                }
+
+                // First fetch the player's main page to get the persona id
+
+                bool okClanTag = false;
+                if (cacheEnabled)
+                {
+                    // Get clan tag from cache
+                    fetchJSON(ref result, null, player, "clanTag");
+
+                    json = (Hashtable)JSON.JsonDecode(result);
+
+                    if (!CheckSuccess(json, out statsEx)) throw statsEx;
+
+                    // verify there is data structure
+                    Hashtable d = null;
+                    if (!json.ContainsKey("data") || (d = (Hashtable)json["data"]) == null)
+                        throw new StatsException("JSON clanTag response does not contain a ^bdata^n field, for " + player);
+
+                    if (!d.ContainsKey("clanTag"))
+                        throw new StatsException("JSON clanTag response does not contain a ^bclanTag^n field, for " + player);
+
+                    String t = (String)d["clanTag"];
+                    if (!String.IsNullOrEmpty(t)) pinfo.tag = t;
+                    okClanTag = true;
+                }
+
+                if (!okClanTag && directFetchEnabled)
+                {
+                    if (!plugin.plugin_enabled)
+                    {
+                        throw new StatsException("fetchStats aborted, disabling plugin ...");
+                    }
+
+                    fetchWebPage(ref result, "http://battlelog.battlefield.com/bf3/user/" + player);
+
+                    if (!plugin.plugin_enabled)
+                    {
+                        throw new StatsException("fetchStats aborted, disabling plugin ...");
+                    }
+
+                    // Extract the persona id
+                    MatchCollection pid = null;
+
+                    if (plugin.game_version == "BF4")
+                    {
+                        pid = Regex.Matches(result, @"bf4/soldier/" + player + @"/stats/(\d+)(['""]|/\s*['""]|/[^/'""]+)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                    }
+                    else
+                    {
+                        pid = Regex.Matches(result, @"bf3/soldier/" + player + @"/stats/(\d+)(['""]|/\s*['""]|/[^/'""]+)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                    }
+
+
+                    foreach (Match match in pid)
+                        if (match.Success && !Regex.Match(match.Groups[2].Value.Trim(), @"(ps3|xbox)", RegexOptions.IgnoreCase).Success)
+                        {
+                            personaId = match.Groups[1].Value.Trim();
+                            break;
+                        }
+
+
+                    if (String.IsNullOrEmpty(personaId))
+                        throw new StatsException("could not find persona-id for ^b" + player);
+
+                    if (plugin.game_version == "BF4")
+                    {
+
+                        if (!plugin.plugin_enabled)
+                        {
+                            throw new StatsException("fetchStats aborted, disabling plugin ...");
+                        }
+
+                        String turl = "http://battlelog.battlefield.com/bf4/warsawoverviewpopulate/" + personaId + "/1/";
+                        fetchWebPage(ref result, turl);
+
+                        if (!plugin.plugin_enabled)
+                        {
+                            throw new StatsException("fetchStats aborted, disabling plugin ...");
+                        }
+
+                        json = (Hashtable)JSON.JsonDecode(result);
+
+                        // check we got a valid response
+
+                        // verify we got a success message
+                        if (!CheckSuccess(json, out statsEx)) throw statsEx;
+
+                        // verify there is data structure
+                        if (!json.ContainsKey("data") || (data = (Hashtable)json["data"]) == null)
+                            throw new StatsException("JSON response does not contain a ^bdata^n field, for " + player, turl);
+
+                        // verify there is viewedPersonaInfo structure, okay if null!
+                        Hashtable info = null;
+                        if (!data.ContainsKey("viewedPersonaInfo") || (info = (Hashtable)data["viewedPersonaInfo"]) == null)
+                        {
+                            // No tag
+                            pinfo.tag = String.Empty;
+                            plugin.DebugWrite("Battlelog says ^b" + player + "^n has no BF4 tag (no viewedPersonaInfo)", 5);
+                        }
+                        else
+                        {
+                            // Extract the player tag
+                            String bf4Tag = String.Empty;
+                            if (!info.ContainsKey("tag") || String.IsNullOrEmpty(bf4Tag = (String)info["tag"]))
+                            {
+                                // No tag
+                                pinfo.tag = String.Empty;
+                                plugin.DebugWrite("^4Battlelog says ^b" + player + "^n has no BF4 tag", 5);
+                            }
+                            else
+                            {
+                                pinfo.tag = bf4Tag;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        extractClanTag(result, pinfo);
+                    }
+                }
+
+                // Next, get player's overview stats
+
+                if (!plugin.plugin_enabled)
+                {
+                    throw new StatsException("fetchStats aborted, disabling plugin ...");
+                }
+
+                String furl = null;
+                if (plugin.game_version == "BF4")
+                {
+                    furl = "http://battlelog.battlefield.com/bf4/warsawdetailedstatspopulate/" + personaId + "/1/";
+                }
+                else
+                {
+                    furl = "http://battlelog.battlefield.com/bf3/overviewPopulateStats/" + personaId + "/bf3-us-engineer/1/";
+                }
+                fetchJSON(ref result, furl, player, "overview");
+
+
+                if (!plugin.plugin_enabled)
+                {
+                    throw new StatsException("fetchStats aborted, disabling plugin ...");
+                }
+
+                json = (Hashtable)JSON.JsonDecode(result);
+
+                // check we got a valid response
+
+                // verify we got a success message
+                if (!CheckSuccess(json, out statsEx)) throw statsEx;
+
+                // verify there is data structure
+                if (!json.ContainsKey("data") || (data = (Hashtable)json["data"]) == null)
+                    throw new StatsException("JSON response does not contain a ^bdata^n field, for " + player, furl);
+
+                // verify there is stats structure
+                Hashtable stats = null;
+                String jsonOverviewStatsKey = (plugin.game_version == "BF4") ? "generalStats" : "overviewStats";
+                if (!data.ContainsKey(jsonOverviewStatsKey) || (stats = (Hashtable)data[jsonOverviewStatsKey]) == null)
+                    throw new StatsException("JSON response ^bdata^n does not contain ^b" + jsonOverviewStatsKey + "^n, for " + player, furl);
+
+                // extract the fields from the stats
+                extractBasicFields(stats, pinfo);
+
+                // verify there is a kitmap structure
+                Hashtable kitMap = null;
+                if (!data.ContainsKey("kitMap") || (kitMap = (Hashtable)data["kitMap"]) == null)
+                {
+                    if (plugin.game_version == "BF3")
+                        throw new StatsException("JSON response ^bdata^n does not contain ^bkitMap^n, for " + player, furl);
+                    else
+                    {
+                        kitMap = null;
+                    }
+                }
+
+                // Build the id->kit and kit->id maps
+                List<Dictionary<String, String>> maps = null;
+                //Dictionary<String, String> kit2id = null;
+                Dictionary<String, String> id2kit = null;
+                if (kitMap != null)
+                {
+                    maps = buildKitMaps(kitMap);
+                    //kit2id = maps[1];
+                    id2kit = maps[1];
+                }
+                else
+                {
+                    id2kit = new Dictionary<String, String>();
+                    id2kit["1"] = "assault";
+                    id2kit["2"] = "engineer";
+                    id2kit["8"] = "recon";
+                    id2kit["16"] = "vehicle";
+                    id2kit["32"] = "support";
+                    id2kit["64"] = "general";
+                    id2kit["2048"] = "commander";
+                }
+
+
+                // verify there is kit times (seconds) structure
+                Hashtable kitTimes = null;
+                if (!stats.ContainsKey("kitTimes") || (kitTimes = (Hashtable)stats["kitTimes"]) == null)
+                    throw new StatsException("JSON response ^boverviewStats^n does not contain ^bkitTimes^n, for " + player, furl);
+
+                //  extract the kit times (seconds) 
+                extractKitTimes(kitTimes, id2kit, pinfo, "_t");
+
+                // verify there is kit time (percent) structure
+                Hashtable kitTimesInPercentage = null;
+                if (!stats.ContainsKey("kitTimesInPercentage") || (kitTimesInPercentage = (Hashtable)stats["kitTimesInPercentage"]) == null)
+                    throw new StatsException("JSON response ^boverviewStats^n does not contain ^bkitTimesInPercentage^n, for " + player, furl);
+
+                //  extract the kit times (percentage)
+                extractKitTimes((Hashtable)stats["kitTimesInPercentage"], id2kit, pinfo, "_p");
+
+                if (!plugin.plugin_enabled)
+                {
+                    throw new StatsException("fetchStats aborted, disabling plugin ...");
+                }
+
+                DateTime since = DateTime.Now;
+
+                try
+                {
+
+                    String logName = @"Logs\" + plugin.server_host + "_" + plugin.server_port + @"\" + DateTime.Now.ToString("yyyyMMdd") + "_battle.log";
+
+                    // print the collected stats to log
+                    if (plugin.getBooleanVarValue("use_stats_log"))
+                    {
+                        since = DateTime.Now;
+
+                        plugin.Log(logName, "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + pinfo.FullName + ((okClanTag && cacheEnabled) ? " Battlelog CACHED stats: " : " Battlelog player stats:"));
+                        pinfo.dumpStatProperties("web", logName);
+
+                        if (DateTime.Now.Subtract(since).TotalSeconds > 1) plugin.DebugWrite("^2^bTIME^n took " + DateTime.Now.Subtract(since).TotalSeconds.ToString("F2") + " secs, dumpStatProperties", 5);
+                    }
+
+
+                    // extract weapon level statistics 
+                    List<BattlelogWeaponStats> wstats = null;
+                    if (plugin.getBooleanVarValue("use_slow_weapon_stats"))
+                    {
+                        wstats = extractWeaponStats(pinfo, personaId);
+                    }
+                    else
+                    {
+                        plugin.DebugWrite("^1^buse_slow_weapon_stats^n is ^bFalse^n, skipping fetch of weapon stats", 5);
+                    }
+
+                    pinfo.BWS.setWeaponData(wstats);
+
+                    if (!plugin.plugin_enabled)
+                    {
+                        throw new StatsException("fetchStats aborted, disabling plugin ...");
+                    }
+
+                    if (wstats != null && plugin.getBooleanVarValue("use_stats_log"))
+                    {
+                        since = DateTime.Now;
+
+                        String bwsBlob = "[" + DateTime.Now.ToString("HH:mm:ss") + "] " + pinfo.FullName + " Battlelog weapon stats:\n";
+                        foreach (BattlelogWeaponStats bws in wstats)
+                        {
+                            bwsBlob = bwsBlob + "    N:" + bws.Name + ", S:" + bws.Slug + ", C:" + bws.Category + ", Code:" + bws.Code + ", K:" + bws.Kills.ToString("F0") + ", SF:" + bws.ShotsFired.ToString("F0") + ", SH:" + bws.ShotsHit.ToString("F0") + ", A:" + bws.Accuracy.ToString("F3") + ", HS:" + bws.Headshots.ToString("F0") + ", T:" + TimeSpan.FromSeconds(bws.TimeEquipped).ToString() + "\n";
+                        }
+                        bwsBlob = bwsBlob + "=====================\n";
+                        plugin.AppendData(bwsBlob, logName); // raw version of Log()
+
+                        if (DateTime.Now.Subtract(since).TotalSeconds > 1) plugin.DebugWrite("^2^bTIME^n took " + DateTime.Now.Subtract(since).TotalSeconds.ToString("F2") + " secs, log weapon stats", 5);
+                    }
+                    plugin.DebugWrite("done logging stats for " + pinfo.Name, 5);
+
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+                finally
+                {
+                    pinfo.StatsError = false;
+                }
+            }
+            catch (StatsException e)
+            {
+                if (e.web_exception == null)
+                {
+                    if (plugin.getIntegerVarValue("debug_level") >= 4) plugin.ConsoleWarn("(StatsException) " + e.Message);
+                }
+                else
+                {
+                    plugin.DebugWrite("(StatsException) System.Net.WebException: " + e.web_exception.Message, 4);
+                    pinfo._web_exception = e.web_exception;
+                }
+
+                if (e.code == 404)
+                {
+                    pinfo.Battlelog404 = true;
+                }
+
+                pinfo.StatsError = true;
+            }
+            catch (System.Net.WebException e)
+            {
+                plugin.DebugWrite("System.Net.WebException: " + e.Message, 4);
+                pinfo.StatsError = true;
+                pinfo._web_exception = e;
+            }
+            catch (Exception e)
+            {
+                pinfo.StatsError = true;
+                plugin.DumpException(e);
+            }
+            finally
+            {
+                // Clean-up the cache response, if any
+                bool didit = false;
+                if (pinfo != null && pinfo.Name != null)
+                {
+                    lock (plugin.cacheResponseTable)
+                    {
+                        if (plugin.cacheResponseTable.ContainsKey(pinfo.Name))
+                        {
+                            plugin.cacheResponseTable.Remove(pinfo.Name);
+                            didit = true;
+                        }
+                    }
+                    if (didit)
+                    {
+                        plugin.DebugWrite("Finally cleaned up cacheResponseTable for " + pinfo.Name, 4);
+                    }
+                }
+            }
+
+            return pinfo;
+        }
+        private String fetchJSON(ref String bigText, String url, String playerName, String requestType)
+        {
+            bool directFetchEnabled = plugin.getBooleanVarValue("use_direct_fetch");
+            bool cacheEnabled = plugin.IsCacheEnabled(false);
+            bool ok = false;
+
+            bigText = String.Empty;
+
+            if (cacheEnabled)
+            {
+                // block waiting for cache to respond
+                bigText = plugin.SendCacheRequest(playerName, requestType);
+                ok = !String.IsNullOrEmpty(bigText);
+                if (ok) return String.Empty;
+                // if !ok, fall back on direct fetch, if enabled
+            }
+
+            if (!ok && directFetchEnabled && url != null)
+            {
+                return fetchWebPage(ref bigText, url);
+            }
+
+            if (url == null && requestType == "clanTag")
+            {
+                return String.Empty; // caller may try direct
+            }
+
+            // Unable to fetch JSON
+            plugin.DebugWrite("Unable to fetch stats for " + playerName + ", caching is disabled and direct fetch is disabled!", 4);
+            throw new StatsException("stats fetching is disabled");
+
+            //return String.Empty;
+        }
+        private String fetchWebPage(ref String html_data, String url)
+        {
+            try
+            {
+                if (client == null)
+                {
+                    client = new WebClient();
+                    String ua = "Mozilla/5.0 (compatible; PRoCon 1; Insane Limits)";
+                    // XXX String ua = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0; .NET CLR 3.5.30729)";
+                    plugin.DebugWrite("Using user-agent: " + ua, 4);
+                    client.Headers.Add("user-agent", ua);
+                }
+
+                DateTime since = DateTime.Now;
+
+                html_data = client.DownloadString(url);
+
+                plugin.DebugWrite("^2^bTIME^n took " + DateTime.Now.Subtract(since).TotalSeconds.ToString("F2") + " secs, fetchWebPage: " + url, 5);
+
+                if (Regex.Match(html_data, @"that\s+page\s+doesn't\s+exist", RegexOptions.IgnoreCase | RegexOptions.Singleline).Success)
+                    throw new StatsException("^b" + url + "^n does not exist", 404);
+
+                return html_data;
+
+            }
+            catch (WebException e)
+            {
+                client = null; // release WebClient
+                if (e.Status.Equals(WebExceptionStatus.Timeout))
+                {
+                    StatsException se = new StatsException("HTTP request timed-out");
+                    se.web_exception = e;
+                    throw se;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception ae)
+            {
+                client = null; // release WebClient
+                throw ae;
+            }
+            //return html_data;
+        }
+
+        */
 
         public void MergeAllSquads()
         {
@@ -1682,9 +2145,11 @@ Level 4: Plugin Internal Information <br>
 
             DebugWrite("---------------------------------------- Checking completed --------------------------------------- ", 2);
 
+            // Perform Switching
+
             for (int i = 0; i < TeamCount; i++)
             {
-                for (int j = 1; j <= 5; j++)
+                for (int j = 2; j <= 5; j++)
                 {
                     if (SquadIDs[i, j] == null)
                         continue;
@@ -1706,7 +2171,6 @@ Level 4: Plugin Internal Information <br>
                             msg += "^b" + SQUAD_NAMES[entry] + "^n, ";
 
                             Squad PlayersSquad = squads.SearchSquad(i+1, entry);
-                            DebugWrite("D", 2);
                             
                             if (PlayersSquad != null)
                             {
@@ -3719,16 +4183,24 @@ Level 4: Plugin Internal Information <br>
 
                     foreach(CPlayerInfo player in PlayersList) 
                     {
-                        if(player.SoldierName == Leader)
+                        if (player.SoldierName == Leader)
+                        {
                             LeaderTag = player.ClanTag;
-                        if(player.SoldierName == speaker)
+                            DebugWrite("Found " + Leader + "'s Tag: " + LeaderTag, 4);
+                        }
+
+                        if (player.SoldierName == speaker)
+                        {
                             SpeakerTag = player.ClanTag;
+                            DebugWrite("Found " + speaker + "'s Tag: " + SpeakerTag, 4);
+                        }
+
                         if(SpeakerTag != String.Empty && LeaderTag != String.Empty)
                             break;
                     }
                    
 
-                    if (Permission == false && ( WhiteList.Contains(speaker) || ClanWhiteList.Contains(SpeakerTag) ) && (!WhiteList.Contains(squad.GetSquadLeader()) && !ClanWhiteList.Contains(LeaderTag)) )
+                    if (Permission == false && ( WhiteList.Contains(speaker) || ClanWhiteList.Contains(SpeakerTag) ) && (!WhiteList.Contains(Leader) && !ClanWhiteList.Contains(LeaderTag)) )
                     {
                         DebugWrite("^b" + speaker + "^n ask for lead of Squad ^b[" + squad.getID(0) + "][" + squad.getName() + "]^n. Player is in Squad List.", 2);
                         Permission = true;
